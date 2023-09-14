@@ -1,0 +1,41 @@
+debug: false
+management.endpoints.web.exposure.include: "*"
+
+logging:
+  level:
+    com.fastcampus.projectboard: debug
+    org.springframework.web.servlet: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/board
+    username: gon
+    password: 2025
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    defer-datasource-initialization: true
+    hibernate.ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate.format_sql: true
+      hibernate.default_batch_fetch_size: 100
+  h2.console.enabled: true
+  sql.init.mode: always
+
+#---
+#
+#spring:
+#  config.activate.on-profile: testdb
+#  datasource:
+#    url: jdbc:h2:mem:board;mode=mysql # mySQL mode 로 사용 (참고 : https://www.h2database.com/)
+#    driverClassName: org.h2.Driver
+#  sql.init.mode: always
+#  test.database.replace: none
+  # @ActiveProfiles("testdb") annotation 으로 test 에서 해당 setting 을 사용하려고 하지만
+  # @DataJpaTest 를 적용하면 JPA 가 앞의 설정 조건을 무시하고 무조건 자체 setting 으로 진행을 해벼림
+  # @AutoConfigureTestDatabse(replace = AutoConfigureTestDatabase.Replace.NONE) 사용
+  # 그러면 Testdb 를 다시 설정하지 않고, 앞에 setting 된 db 를 그대로 사용할 수 있게 됨.
+  # 그런데 해당 annotation 은 각 test class 에 매번 설정해줘야 한다.
+  # 따라서 이 기능을 모든 test 에 전역적으로 사용하고 싶을 때
+  # test.database.replace: none 으로 설정
