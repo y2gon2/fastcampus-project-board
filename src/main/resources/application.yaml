@@ -30,6 +30,40 @@ spring:
 #  h2.console.enabled: true
   sql.init.mode: always
 
+  # Spring data REST
+  # spring data repository 를 자동으로 RESTful service 로 노출 시킬수 있게 만들어주는 라이브러리
+  # 기존의 MVC pattern 에서 sprind data REST 를 사용하면 controller 와 model 의 구현 작업을 해당 라이브러리에서 내부적으로 처리되므로
+  # DB CRUD 작업과 client REST 에서 처리되어야 할 data 처리과정이 단순한 경우 Spring data REST 를 사용하는 것이 작업량을 줄이는데 도움이 되지만
+  # 그외 경우 직접 controller / model 을 작성하는 것이 나을 수 있음.
+  # by ChatGPT
+  # Spring Data REST는 CRUD 연산을 자동화하여 빠르게 RESTful API를 생성해 주는 장점이 있지만,
+  # 복잡한 데이터 변환이나 비즈니스 로직이 필요한 경우에는 그러한 상황을 완벽하게 처리하기 어렵습니다.
+  # 다음은 Spring Data REST를 사용할 때 고려해야 할 몇 가지 제약사항과 단점입니다:
+  #
+  # 복잡한 로직:
+  # Spring Data REST는 기본적으로 간단한 CRUD 연산을 자동으로 처리해주지만,
+  # 복잡한 비즈니스 로직이나 데이터 변환을 위해서는 별도의 컨트롤러를 구현해야 할 수 있습니다.
+  #
+  # 유연성 부족
+  # 자동 생성된 API는 특정 규칙에 따라 만들어지므로, 원하는 엔드포인트 이름, 데이터 형식 등을 세밀하게 조정하기 어렵습니다.
+  #
+  # 보안
+  # Spring Data REST는 자동으로 API를 노출시키기 때문에, 보안 적용을 따로 해주어야 하며 이를 놓치게 되면 심각한 보안 문제가 발생할 수 있습니다.
+  #
+  # 성능
+  # 자동 생성된 API는 최적화되지 않았을 가능성이 있으므로, 특히 큰 데이터셋에서는 성능 이슈가 발생할 수 있습니다.
+  #
+  # 커스터마이징의 한계
+  # Spring Data REST를 사용하면서 커스터마이징을 하려면, 여러 설정과 확장 포인트를 잘 알고 있어야 합니다. 그렇지 않으면 원하는 동작을 쉽게 구현하기 어렵습니다.
+  #
+  # 따라서, 데이터 구조의 변환이 복잡하거나 추가적인 서버 측 로직이 필요한 경우에는 Spring Data REST보다는
+  # 일반적인 Spring MVC와 JPA, MongoDB 등을 직접 사용하여 API를 구현하는 것이 더 유연하고 제어력이 높을 수 있습니다.
+  data.rest:
+    base-path: /api
+
+    # 우리가 가진 repository 를 확인하는데 해당 repository  를 REST 노출을 시킬것인가 에 대한 전략
+    detection-strategy: annotated
+
 #---
 #
 #spring:
