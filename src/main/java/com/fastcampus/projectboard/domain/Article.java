@@ -27,9 +27,9 @@ import javax.persistence.*;
         @Index(columnList = "createdAt"),
         @Index(columnList = "createdBy"),
 })
-@EntityListeners(AuditingEntityListener.class)
+//@EntityListeners(AuditingEntityListener.class) // AuditingFields 로 빠짐
 @Entity
-public class Article {
+public class Article extends AuditingFields {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -55,10 +55,11 @@ public class Article {
     // 예를 들면 CreatedDate 는 생성되는 순간 해당 date 값을 자둉으로 넣어줌
     // 그런데 생성자 정보는 어떻게 얻지? login 같은건 아직 구현되어 있지 않은데?
     // -> JpaConfig 에서 설정??
-    @CreatedDate @Column(nullable = false) private LocalDateTime createdAt;
-    @CreatedBy @Column(nullable = false, length = 100) private String createdBy;
-    @LastModifiedDate @Column(nullable = false) private LocalDateTime modifiedAt;
-    @LastModifiedBy @Column(nullable = false, length = 100) private String modifiedBy;
+    // -> AuditingField 로 빠짐
+//    @CreatedDate @Column(nullable = false) private LocalDateTime createdAt;
+//    @CreatedBy @Column(nullable = false, length = 100) private String createdBy;
+//    @LastModifiedDate @Column(nullable = false) private LocalDateTime modifiedAt;
+//    @LastModifiedBy @Column(nullable = false, length = 100) private String modifiedBy;
 
     // 모든 JPA (hibernate 기준) entity 들은 기본 생성자 구현이 필수
     protected Article() {}
