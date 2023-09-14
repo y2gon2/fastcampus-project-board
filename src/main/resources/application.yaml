@@ -13,6 +13,13 @@ spring:
     username: gon
     password: 2025
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+#    url: jdbc:h2:mem:testdb
+#    username: sa
+#    driver-class-name: org.h2.Driver
+    # log 화면상 아래 내용 출력 확인
+    # -> INFO 17032 --- [  restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:testdb'
+    # http://localhost:8080/h2-console 접속 및 확인
   jpa:
     defer-datasource-initialization: true
     hibernate.ddl-auto: create
@@ -20,7 +27,7 @@ spring:
     properties:
       hibernate.format_sql: true
       hibernate.default_batch_fetch_size: 100
-  h2.console.enabled: true
+#  h2.console.enabled: true
   sql.init.mode: always
 
 #---
