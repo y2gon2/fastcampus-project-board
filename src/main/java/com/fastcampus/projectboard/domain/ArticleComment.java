@@ -21,9 +21,9 @@ import javax.persistence.*;
         @Index(columnList = "createdAt"),
         @Index(columnList = "createdBy"),
 })
-@EntityListeners(AuditingEntityListener.class)
+//@EntityListeners(AuditingEntityListener.class)     // AuditingFields 로 빠짐
 @Entity
-public class ArticleComment {
+public class ArticleComment extends AuditingFields {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,10 +33,11 @@ public class ArticleComment {
     @Setter @ManyToOne(optional = false) private Article article; // 연관관계 설정 필요
     @Setter @Column(nullable = false, length = 500) private String content;
 
-    @CreatedDate @Column(nullable = false) private LocalDateTime createdAt;
-    @CreatedBy @Column(nullable = false, length = 100) private String createdBy;
-    @LastModifiedDate @Column(nullable = false) private LocalDateTime modifiedAt;
-    @LastModifiedBy  @Column(nullable = false, length = 100) private String modifiedBy;
+    // AuditingFields 로 빠짐
+//    @CreatedDate @Column(nullable = false) private LocalDateTime createdAt;
+//    @CreatedBy @Column(nullable = false, length = 100) private String createdBy;
+//    @LastModifiedDate @Column(nullable = false) private LocalDateTime modifiedAt;
+//    @LastModifiedBy  @Column(nullable = false, length = 100) private String modifiedBy;
 
     protected ArticleComment() {}
 
