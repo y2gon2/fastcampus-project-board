@@ -33,8 +33,43 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // queryDSL 설정
+    implementation "com.querydsl:querydsl-jpa" // 해당 library 와 같이 일반적인  경우 ...jpa:version 정보 가 입력되게 되는데
+    implementation "com.querydsl:querydsl-core" //  id 'io.spring.dependency-management' version '1.0.15.RELEASE' 가 알아서 해당 위치에 적용 버젼을 넣어준다
+    implementation "com.querydsl:querydsl-collections"
+    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jpa" // 해당 경우는 버전 위치가 특수하여 수동으로 찾아 넣어주는 gradle 문을 사용함
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api" // java.lang.NoClassDefFoundError (javax.annotation.Generated) 대응 코드
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api" // java.lang.NoClassDefFoundError (javax.annotation.Entity) 대응 코드
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Querydsl 설정부
+// QClass : Query DSL 이 자동으로 class 를 생성하는 기능을 가짐.
+// 이때 자체 설정으로는 해당 class 들이 자체 설정으로 build direct 내부에 쉽게 알기 어려운 곳에 생성됨.
+// 근데 이게 IDE(아마 intelliJ  만?) 를 사용하면서 문제를 발생시킬 수 있기 때문에 잠재적인 문제 발생을 피하기 위해 따로 설정함.
+// gradle build 할 때 scan 되는 영영과 IDE 가 build 할 때 scan 되는 영역에 차이가 있음
+// 그래서 gradle build 영역과 intellij  build scan 영역 중 중복 영역이 발생함.
+// 그래서 똑같은 class 를 중복하여 가져오려다 에러가 발생하는 현상이 발생함.
+// 때문에 QClass 위치를 강제로 바꿔서 해당 문제를 제거함.
+
+// Querydsl 설정부
+def generated = 'src/main/generated'
+
+// querydsl QClass 파일 생성 위치를 지정
+tasks.withType(JavaCompile) {
+    options.getGeneratedSourceOutputDirectory().set(file(generated))
+}
+
+// java source set 에 querydsl QClass 위치 추가
+sourceSets {
+    main.java.srcDirs += [ generated ]
+}
+
+// gradle clean 시에 QClass 디렉토리 삭제
+clean {
+    delete file(generated)
 }
