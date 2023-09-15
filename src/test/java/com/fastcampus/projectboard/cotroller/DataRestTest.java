@@ -1,6 +1,7 @@
 package com.fastcampus.projectboard.cotroller;
 
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // controller 관련 bean 만 생성되며, service 나 repository bean 은 생성되지 않으므로  전체적으로  response 까지 test 하려면
 // @SpringBootTest 를 적용하며야 함.
 //@WebMvcTest
+@Disabled("해당 Data REST Test 는 무겁고 불필요하므로 전체 test 에서 제외")
 @DisplayName("Data REST - API test")
 @Transactional  // test 내 transaction 은 기본적으로 rollback 처리되어 원본 DB 에 영향 X
 @SpringBootTest
