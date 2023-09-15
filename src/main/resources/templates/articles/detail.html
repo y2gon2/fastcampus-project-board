@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 페이지</title>
+</head>
+
+<body>
+<header id="header"></header>
+
+<main>
+    <header>
+        <h1>첫번째 글</h1>
+    </header>
+
+    <aside>
+        <p>Gon</p>
+        <p><a href="mailto:y2gon2@gmail.com">gon@mail.com</a></p>
+        <p><time datetime="2023-01-01T00:00:00">2022-01-01</time></p>
+        <p>#java</p>
+    </aside>
+
+    <section>
+        <p>본문<br><br></p>
+
+        <div>
+            <form>
+                <label for="articleComment1" hidden>댓글</label>
+                <textarea id="articleComment1" placeholder="댓글쓰기 .. " rows="3"></textarea>
+                <button type="submit">쓰기</button>
+            </form>
+
+            <ul>
+                <li>
+                    <div>
+                        <time><small>2023-01-01</small></time>
+                        <strong>gon</strong>
+                        <p>
+                            BUILD SUCCESSFUL in 341ms
+                            2 actionable tasks: 1 executed, 1 up-to-date
+                            오후 7:48:46: Execution finished ':classes'.
+                        </p>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <time><small>2023-02-01</small></time>
+                        <strong>gon2</strong>
+                        <p>
+                            오후 7:49:14: Executing ':classes'...
+                        </p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <nav role="navigation">
+            <a href="#">이전글</a>
+            <a href="#">다음글</a>
+
+        </nav>
+    </section>
+
+</main>
+
+<footer id="footer"></footer>
+</body>
+</html>

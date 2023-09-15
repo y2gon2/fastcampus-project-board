@@ -37,7 +37,7 @@ class ArticleControllerTest {
                 .andExpect(model().attributeExists("articles")); // 서버에서 게시글 목록을 받았을 view 로 articles attribute 이 전달되었는지 확인
     }
 
-    @Disabled("TODO")
+//    @Disabled("TODO")
     @DisplayName("[view][GET] 단건 게시글 - 정상호출")
     @Test
     public void givenNothing_whenRequestingArticleView_thenReturnsArticleView() throws Exception {
