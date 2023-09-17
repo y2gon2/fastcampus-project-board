@@ -64,6 +64,9 @@ spring:
     # 우리가 가진 repository 를 확인하는데 해당 repository  를 REST 노출을 시킬것인가 에 대한 전략
     detection-strategy: annotated
 
+  thymeleaf3:
+    decoupled-logic: true # by ThymeleafConfig class
+
 #---
 #
 #spring:

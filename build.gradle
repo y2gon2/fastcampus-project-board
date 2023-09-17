@@ -27,10 +27,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.data:spring-data-rest-hal-explorer'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-security'  // 해당 spring security 의존성을 삽입할 때는  Spring web 과 thymelaef 를 반드시 같이 넣고 생성해야
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'  // 위 조건일 때 해당 thymeleaf security 의존성 list 가 생성되어 이를 같이 십입 할 수 있음
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'
     compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools' // 사용자 custom configuraton 을 잡아주는 tool??
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
