@@ -2,6 +2,7 @@ package com.fastcampus.projectboard.service;
 
 import com.fastcampus.projectboard.domain.Article;
 import com.fastcampus.projectboard.domain.ArticleComment;
+import com.fastcampus.projectboard.domain.UserAccount;
 import com.fastcampus.projectboard.dto.ArticleCommentDto;
 import com.fastcampus.projectboard.dto.ArticleCommentUpdateDto;
 import com.fastcampus.projectboard.repository.ArticleCommentRepository;
@@ -39,8 +40,9 @@ class ArticleCommentServiceTest {
     void givenArticleID_whenSearchingArticleComments_thenReturnsArticleComments() {
         // Given
         Long articleId = 1L;
+        UserAccount userAccount = UserAccount.of("1", "password", "nickname", "memo");
         given(articleRepository.findById(articleId)).willReturn(Optional.of(Article.of(
-                "title", "content", "#java")
+                userAccount, "title", "content", "#java")
         ));
 
         // When
