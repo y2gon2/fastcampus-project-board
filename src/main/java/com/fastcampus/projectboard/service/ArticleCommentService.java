@@ -1,7 +1,6 @@
 package com.fastcampus.projectboard.service;
 
 
-import com.fastcampus.projectboard.dto.ArticleCommentUpdateDto;
 import com.fastcampus.projectboard.repository.ArticleCommentRepository;
 import com.fastcampus.projectboard.repository.ArticleRepository;
 import com.fastcampus.projectboard.dto.ArticleCommentDto;
@@ -20,14 +19,14 @@ public class ArticleCommentService {
     private final ArticleCommentRepository articleCommentRepository;
 
     @Transactional(readOnly = true)
-    public List<ArticleCommentDto> searchArticleComment(long articleId) {
+    public List<ArticleCommentDto> searchArticleComments(long articleId) {
         return List.of();
     }
 
     public void saveArticleComment(ArticleCommentDto dto) {
     }
 
-    public void upateArticleComment(long l, ArticleCommentUpdateDto conent) {
+    public void upateArticleComment(ArticleCommentDto dto) {
     }
 
     public void deleteArticleComment(long l) {

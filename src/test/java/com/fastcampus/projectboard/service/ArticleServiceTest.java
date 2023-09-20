@@ -1,8 +1,11 @@
 package com.fastcampus.projectboard.service;
 
 import com.fastcampus.projectboard.domain.Article;
+import com.fastcampus.projectboard.domain.UserAccount;
 import com.fastcampus.projectboard.domain.type.SearchType;
 import com.fastcampus.projectboard.dto.ArticleUpdateDto;
+import com.fastcampus.projectboard.dto.ArticleWithCommentsDto;
+import com.fastcampus.projectboard.dto.UserAccountDto;
 import com.fastcampus.projectboard.repository.ArticleRepository;
 import com.fastcampus.projectboard.dto.ArticleDto;
 import org.junit.jupiter.api.Disabled;
@@ -13,9 +16,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,99 +45,191 @@ class ArticleServiceTest {
     // AricleRepository 를 통한 DB CRUD 작업 진행 (Mocking 할 때 필요)
     @Mock private ArticleRepository articleRepository;
 
-    @DisplayName("게시글을 검색하면, 게시글 리스트를 반환한다. ")
+    @DisplayName("검색어 없이 게시글을 검색하면, 게시글 페이지를 반환한다.")
     @Test
-    void givenSearchParameters_whenSearchingArticles_thenReturnsArticleList() {
+    void givenNoSearchParameters_whenSearchingArticles_thenReturnsArticleList() {
         // Given
+        Pageable pageable = Pageable.ofSize(20);
+        given(articleRepository.findAll(pageable)).willReturn(Page.empty());
 
         // When
-        // 검색 가능 parmater 중 title 을 keyword 하여 검색을 진행했을 때, 그 결과로 AritcleDto list 를 반환받는다.
-        List<ArticleDto> articles = sut.searchArticles(SearchType.TITLE,  "search keyword");  // indexing parameter: 제목, 본문, ID, 닉네임, 해시태그
+        Page<ArticleDto> articles = sut.searchArticles(null, null, pageable);
 
         // Then
-        assertThat(articles).isNotNull();
+        assertThat(articles).isEmpty();
+        then(articleRepository).should().findAll(pageable);
+    }
+
+    @DisplayName("검색어와 함께 게시글을 검색하면, 게시글 페이지를 반환한다.")
+    @Test
+    void givenSearchParameters_whenSearchingArticles_thenReturnsArticlePage() {
+        // Given
+        SearchType searchType = SearchType.TITLE;
+        String searchKeyword = "title";
+        Pageable pageable = Pageable.ofSize(20);
+        given(articleRepository.findByTitle(searchKeyword, pageable)).willReturn(Page.empty());
+
+        // When
+        Page<ArticleDto> articles = sut.searchArticles(searchType, searchKeyword, pageable);
+
+        // Then
+        assertThat(articles).isEmpty();
+        then(articleRepository).should().findByTitle(searchKeyword, pageable);
     }
 
     @Disabled
-    @DisplayName("게시글 조회 -> 게시글 반환")
+    @DisplayName("게시글을 조회하면, 게시글을 반환한다.")
     @Test
     void givenArticleId_whenClickArticle_thenReturnsArticle() {
         // Given
+        Long articleId = 1L;
+        Article article = createArticle();
+        given(articleRepository.findById(articleId)).willReturn(Optional.of(article));
 
         // When
-        ArticleDto articles = sut.searchArticle(1L); // Long articleId
+        ArticleWithCommentsDto dto = sut.getArticle(articleId);
 
         // Then
-        assertThat(articles).isNotNull();
+        assertThat(dto)
+                .hasFieldOrPropertyWithValue("title", article.getTitle())
+                .hasFieldOrPropertyWithValue("content", article.getContent())
+                .hasFieldOrPropertyWithValue("hashtag", article.getHashtag());
+        then(articleRepository).should().findById(articleId);
     }
 
-    @Disabled
-    @DisplayName("page 를 클릭하면 해당 page 로 이동")
+    @DisplayName("없는 게시글을 조회하면, 예외를 던진다.")
     @Test
-    void givenPage_whenClickPage_thenReturnsPage() {
-        // Givn
-
-        // When
-        Page<ArticleDto> articles = sut.pagingArticles(SearchType.TITLE, "search keyword");
-
-        // Then
-        assertThat(articles).isNotNull();
-    }
-
-    // test failed: Wanted but not invoked -> 실제로 save 할 data 가 없기 때문에 진행되지 않음.
-    // 그러나 이는 save 시도까지 진행됨을 보기위한 해당 Test 의 의도에 부함함.
-    @Disabled
-    @DisplayName("게시글 내용 입력 -> 게시글 생성")
-    @Test
-    void givenArticleInfo_whenSavingArticle_thenSavedArticle() {
+    void givenNonExistentArticleId_whenSearchingArticle_thenThrowsException() {
         // Given
-        ArticleDto dto = ArticleDto.of(
-                LocalDateTime.now(),
-                "Gon",
-                "title",
-                "content",
-                "#java"
-        );
-        given(articleRepository.save(any(Article.class))).willReturn(null);
+        Long articleId = 0L;
+        given(articleRepository.findById(articleId)).willReturn(Optional.empty());
+
+        // When
+        ArticleDto articles = sut.searchArticle(1L);
+        Throwable t = catchThrowable(() -> sut.getArticle(articleId));
+
+        // Then
+        assertThat(articles).isNotNull();
+        assertThat(t)
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("게시글이 없습니다 - articleId: " + articleId);
+        then(articleRepository).should().findById(articleId);
+    }
+
+    @DisplayName("게시글 정보를 입력하면, 게시글을 생성한다.")
+    @Test
+    void givenArticleInfo_whenSavingArticle_thenSavesArticle() {
+        // Given
+        ArticleDto dto = createArticleDto();
+        given(articleRepository.save(any(Article.class))).willReturn(createArticle());
 
         // When
         sut.saveArticle(dto);
 
         // Then
-        // save 호출이 발생했는가를 검사
         then(articleRepository).should().save(any(Article.class));
     }
 
-    // test failed: Wanted but not invoked -> 실제로 save 할 data 가 없기 때문에 진행되지 않음.
-    // 그러나 이는 save 시도까지 진행됨을 보기위한 해당 Test 의 의도에 부함함.
-    @Disabled
-    @DisplayName("게시글의 ID와 수정 정보를 입력하면, 게시글을 수정한다.")
+    @DisplayName("게시글의 수정 정보를 입력하면, 게시글을 수정한다.")
     @Test
-    void givenArticleIdAndModifiedInfo_whenUpdatingArticle_thenUpdatesArticle() {
+    void gevenModifiedArticleInfo_whenUpdatingArticle_thenUpdatedsArticle() {
         // Given
-        given(articleRepository.save(any(Article.class))).willReturn(null);
+        Article article = createArticle();
+        ArticleDto dto = createArticleDto("새 타이틀", "새 내용", "#springboot");
+        given(articleRepository.getReferenceById(dto.id())).willReturn(article);
 
         // When
-        sut.updatedArticle(1L, ArticleUpdateDto.of("title", "content", "#java"));
+        sut.updateArticle(dto);
 
         // Then
         then(articleRepository).should().save(any(Article.class));
+        assertThat(article)
+                .hasFieldOrPropertyWithValue("title", dto.title())
+                .hasFieldOrPropertyWithValue("content", dto.content())
+                .hasFieldOrPropertyWithValue("hashtag", dto.hashtag());
+        then(articleRepository).should().getReferenceById(dto.id());
     }
 
-    // 위 test 들과 동일
-    @Disabled
-    @DisplayName("게시글의 ID 를 입력하면, 해당 게시글 삭제")
+    @DisplayName("없는 게시글의 수정 정보를 입력하면, 경고 로그를 찍고 아무 것도 하지 않는다.")
     @Test
-    void givenArticleId_whenDeletingArticle_thenDletesArticle() {
+    void givenNonexistentArticleInfo_whenUpdatingArticle_thenLongWarningAndDoesNothing() {
         // Given
-        willDoNothing().given(articleRepository).delete(any(Article.class));
+        ArticleDto dto = createArticleDto("새 타이틀", "새 내용", "#springboot");
+        given(articleRepository.getReferenceById(dto.id())).willThrow(EntityNotFoundException.class);
 
+        // When
+        sut.updateArticle(dto);
+
+        // Then
+        then(articleRepository).should().getReferenceById(dto.id());
+    }
+
+    @DisplayName("게시글의 ID를 입력하면, 게시글을 삭제한다")
+    @Test
+    void givenArticleId_whenDeletingArticle_thenDeletesArticle() {
+        // Given
+        Long articleId = 1L;
+        willDoNothing().given(articleRepository).deleteById(articleId);
+        
         // When
         sut.deleteArticle(1L);
 
         // Then
-        then(articleRepository).should().delete(any(Article.class));
+        then(articleRepository).should().deleteById(articleId);
     }
 
+    // --------------------  fixture for test  -------------------
+
+    private UserAccount createUserAccount() {
+        return UserAccount.of(
+                "gon",
+                "password",
+                "gon@email.com",
+                "GON",
+                null
+        );
+    }
+
+    private Article createArticle() {
+        return Article.of(
+                createUserAccount(),
+                "password",
+                "content",
+                "#java",
+        );
+    }
+
+    private ArticleDto createArticleDto() {
+        return createArticleDto("title", "content", "#java");
+    }
+
+    private ArticleDto createArticleDto(String title, String content, String hashtag) {
+        return ArticleDto.of(
+                1L,
+                createAccountDto(),
+                title,
+                content,
+                hashtag,
+                LocalDateTime.now(),
+                "Gon",
+                LocalDateTime.now(),
+                "Gon"
+        );
+    }
+
+    private UserAccountDto createAccountDto() {
+        return UserAccountDto.of(
+                1L,
+                "gon",
+                "password",
+                "gon@mail.com"
+                "Gon",
+                "This is memo",
+                LocalDateTime.now(),
+                "gon",
+                LocalDateTime.now(),
+                "gon"
+        );
+    }
 }
 
