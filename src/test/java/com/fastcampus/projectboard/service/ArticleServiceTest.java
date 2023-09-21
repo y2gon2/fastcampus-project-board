@@ -170,7 +170,7 @@ class ArticleServiceTest {
         // Given
         Long articleId = 1L;
         willDoNothing().given(articleRepository).deleteById(articleId);
-        
+
         // When
         sut.deleteArticle(1L);
 
@@ -195,7 +195,7 @@ class ArticleServiceTest {
                 createUserAccount(),
                 "password",
                 "content",
-                "#java",
+                "#java"
         );
     }
 
@@ -222,7 +222,7 @@ class ArticleServiceTest {
                 1L,
                 "gon",
                 "password",
-                "gon@mail.com"
+                "gon@mail.com",
                 "Gon",
                 "This is memo",
                 LocalDateTime.now(),
