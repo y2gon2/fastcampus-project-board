@@ -31,6 +31,13 @@ public record ArticleDto(
         return new ArticleDto(id, userAccountDto, title, content, hashtag, createdAt, createdBy, modifiedAt, modifiedBy);
     }
 
+    // DTO - Entity mapping methods
+    // 해당 logic 의 장점 : Article 은 DTO 의 존재를 몰라도 된다??
+    //                    Article 은 그냥 자체적으로 Entity 를 생성하면 된다.
+    //                    Service logic 등에서 필요한 경우 DTO 를 생성하여 사용하고
+    //                    반대의 경우 아래 toEntity() 로 생성하여 사용할 수 있다.
+
+    // Entity로부터 DTO 생성
     public static ArticleDto from(Article entity) {
         return new ArticleDto(
                 entity.getId(),
@@ -45,6 +52,7 @@ public record ArticleDto(
         );
     }
 
+    // DTO 로부터 entity 생성
     public Article toEntity() {
         return Article.of(
                 userAccountDto.toEntity(),
