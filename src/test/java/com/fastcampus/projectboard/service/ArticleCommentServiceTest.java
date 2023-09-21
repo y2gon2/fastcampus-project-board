@@ -38,20 +38,23 @@ class ArticleCommentServiceTest {
     void givenArticleID_whenSearchingArticleComments_thenReturnsArticleComments() {
         // Given
         Long articleId = 1L;
-        given(articleRepository.findById(articleId)).willReturn(Optional.of(
-                Article.of(createUserAccount(), "title", "content", "#java")
-        ));
         ArticleComment expected = createArticleComment("content");
         given(articleCommentRepository.findByArticle_Id(articleId)).willReturn(List.of(expected));
 
-        // When
+        // When (실제 test target 이 해당 항목에 사용?)
         List<ArticleCommentDto> actual = sut.searchArticleComments(articleId);
 
-        // Then
+        // Then (When 을 실행했을 때 나오는 결과값)
         assertThat(actual)
                 .hasSize(1)  // 안놔.. 아직도 business logic 구현 안되어 있어서 test 통과 못하잖아..;;;
                 .first().hasFieldOrPropertyWithValue("content", expected.getContent());
         then(articleCommentRepository).should().findByArticle_Id(articleId);
+        // mokito then(repository).should(method 실행횟수).repository_method();
+        // -> 해당 repository_method 가 요청한만큼 호출 되었는지를 확인
+        //    해당 횟수만큼 호출되었다면 통과 아니면 test fail 처리
+        //    1. 만약 method 내부 logic 처리 중 expection 이 발생하였다면 -> JUnit test fail 로 처리
+        //    2. 만약 method 내부 logic 이 예상과 다른 결과를 도출하는 경우는 then method 만으로는 검출 불가
+        //       -> 따라서 assertThat() 과 같이, 예상되는 결과값과의 비교가 필요.
     }
 
     @Disabled
@@ -90,12 +93,12 @@ class ArticleCommentServiceTest {
     @Disabled
     @DisplayName("댓글 정보를 입력하면, 댓글을 수정한다.")
     @Test
-    void givenArticleCommentIdAndModifiedInfo_whenUpateingArticleComment_thenUpdatesArticleComment() {
+    void givenArticleCommentIdAndModifiedInfo_whenUpdatingArticleComment_thenUpdatesArticleComment() {
         // Given
         String oldContent = "content";
-        String updatedConetent = "댓글";
+        String updatedContent = "댓글";
         ArticleComment articleComment = createArticleComment(oldContent);
-        ArticleCommentDto dto = createArticleCommentDto(updatedConetent);
+        ArticleCommentDto dto = createArticleCommentDto(updatedContent);
         given(articleCommentRepository.getReferenceById(dto.id())).willReturn(articleComment);
 
         // When
@@ -104,7 +107,7 @@ class ArticleCommentServiceTest {
         // Then
         assertThat(articleComment.getContent())
                 .isNotEqualTo(oldContent)
-                        .isEqualTo(updatedConetent);
+                        .isEqualTo(updatedContent);
         then(articleCommentRepository).should().getReferenceById(dto.id());
     }
 
