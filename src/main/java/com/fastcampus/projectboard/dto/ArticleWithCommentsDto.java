@@ -12,7 +12,7 @@ import java.util.LinkedHashSet;
  */
 public record ArticleWithCommentsDto(
         Long id,
-        UserAccountDto userAccount,
+        UserAccountDto userAccountDto,
         Set<ArticleCommentDto> articleCommentDtos,
         String title,
         String content,
@@ -23,7 +23,7 @@ public record ArticleWithCommentsDto(
         String modifiedBy
         ) {
     public static ArticleWithCommentsDto of(Long id,
-                                  UserAccountDto userAccount,
+                                  UserAccountDto userAccountDto,
                                   Set<ArticleCommentDto> articleCommentDtos,
                                   String title,
                                   String content,
@@ -33,7 +33,7 @@ public record ArticleWithCommentsDto(
                                   LocalDateTime modifiedAt,
                                   String modifiedBy) {
         return new ArticleWithCommentsDto(id,
-                userAccount,
+                userAccountDto,
                 articleCommentDtos,
                 title,
                 content,
@@ -45,19 +45,20 @@ public record ArticleWithCommentsDto(
     }
 
     public static ArticleWithCommentsDto from(Article entity) {
-        return new ArticleWithCommentsDto(
-                entity.getId(),
-                UserAccountDto.from(entity.getUserAccount()),
-                entity.getArticleComments().stream()
-                        .map(ArticleCommentDto::from)
-                        .collect(Collectors.toCollection(LinkedHashSet::new)),
-                entity.getTitle(),
-                entity.getContent(),
-                entity.getHashtag(),
-                entity.getCreatedAt(),
-                entity.getCreatedBy(),
-                entity.getModifiedAt(),
-                entity.getModifiedBy()
-        );
+        return null;
+//        return new ArticleWithCommentsDto(
+//                entity.getId(),
+//                UserAccountDto.from(entity.getUserAccount()),
+//                entity.getArticleComments().stream()
+//                        .map(ArticleCommentDto::from)
+//                        .collect(Collectors.toCollection(LinkedHashSet::new)),
+//                entity.getTitle(),
+//                entity.getContent(),
+//                entity.getHashtag(),
+//                entity.getCreatedAt(),
+//                entity.getCreatedBy(),
+//                entity.getModifiedAt(),
+//                entity.getModifiedBy()
+//        );
     }
 }
