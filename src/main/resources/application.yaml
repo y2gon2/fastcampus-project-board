@@ -21,6 +21,19 @@ spring:
     # -> INFO 17032 --- [  restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:testdb'
     # http://localhost:8080/h2-console 접속 및 확인
   jpa:
+    # 2023-09-21 11:25:41.334  WARN 6168 --- [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default.
+    #       Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+    # -> OSIV (Open Session In View)
+    #    Repository 가 Domain data 를 가저와서 Service 로 전달
+    #    -> data 를 DTO 로 바꿔서 controller 에 넘겨줌
+    #    -> Controller 가  view info 및 model 을 DispatcherServlet (Filter Interceptor) 에 전달 하여 client response 진행
+    #
+    #   위 과정에서 보면 Transacton 의 session (Hibernate 에 의해 생성된) 의 작업은 service - controller 관계에서만 필요하다.
+    #   그런데 open session in view 는 필요한 layer 이외 범위에서 (ex. service - repository) 에서도 Hibernate session 이 살아 있다.
+    #   이러한 경우 session 을 매번 다시 생성하지 않아도 되기 때문에 개발에  편의성은 높아진다. (Lazy laading 활용이 용이)
+    #   다만, 그러나 session 이 의도하지 않은 범위까지 살아 있으므로 설계 의도의 적합성에는 맞지 않을 수 있다.
+    #   또한, DB connection 을 계속 잡고 있으므로써, 많은 트래픽 처리에서 성능 문제가 발생할 수 있다.
+    open-in-view: false # or true (둘중 하나로 결정만 하면 warning 제거) default : true
     defer-datasource-initialization: true
     hibernate.ddl-auto: create
     show-sql: true

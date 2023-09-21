@@ -1,0 +1,46 @@
+    # 2023-09-21 11:25:41.334  WARN 6168 --- [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default.
+    #       Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+
+ -> OSIV (Open Session In View)
+    Repository 가 Domain data 를 가저와서 Service 로 전달
+    -> data 를 DTO 로 바꿔서 controller 에 넘겨줌
+     -> Controller 가  view info 및 model 을 DispatcherServlet (Filter Interceptor) 에 전달 하여 client response 진행
+
+
+아래 블로그 글 : https://ykh6242.tistory.com/entry/JPA-OSIVOpen-Session-In-View%EC%99%80-%EC%84%B1%EB%8A%A5-%EC%B5%9C%EC%A0%81%ED%99%94
+
+Spring Boot JPA 의존성을 주입 받아 어플리케이션을 구성할 경우 spring.jpa.open-in-view의 기본값인 true로 지정되어 있어 OSIV가 적용된 상태로 어플리케이션이 구성된다.
+
+동작 원리는 다음과 같다.
+
+* 클라이언트의 요청이 들어오면 서블릿 필터나, 스프링 인터셉터에서 영속성 컨텍스트를 생성한다. 단 이 시점에서 트랜잭션은 시작하지 않는다.
+
+* 서비스 계층에서 @Transeactional로 트랜잭션을 시작할 때 1번에서 미리 생성해둔 영속성 컨텍스트를 찾아와서 트랜잭션을 시작한다.
+
+* 서비스 계층이 끝나면 트랜잭션을 커밋하고 영속성 컨텍스트를 플러시한다. 이 시점에 트랜잭션은 끝내지만 영속성 컨텍스트는 종료되지 않는다.
+
+* 컨트롤러와 뷰까지 영속성 컨텍스트가 유지되므로 조회한 엔티티는 영속 상태를 유지한다.
+
+* 서블릿 필터나, 스프링 인터셉터로 요청이 돌아오면 영속성 컨텍스트를 종료한다. 이때 플러시를 호출하지 않고 바로 종료한다.
+
+
+서비스 계층에서 트랜잭션이 끝나면 컨트롤러와 뷰에는 트랜잭션이 유지되지 않는 상태이다. 엔티티를 변경하지 않고 단순히 조회만 할 때는 트랜잭션이 없어도 동작하는데,
+이것을 트랜잭션 없이 읽기(Nontransactional reads)라 한다.
+
+하여 만약 프록시를 뷰 렌더링하는 과정에 초기화(Lazy loading)가 일어나게 되어도 조회 기능이므로 트랜잭션이 없이 읽기가 가능하다.
+
+ * 영속성 컨텍스트는 기본적으로 트랜잭션 범위 안에서 엔티티를 조회하고 수정할 수 있다.
+
+ * 영속성 컨텍스트는 트랜잭션 범위 밖에서 엔티티를 조회만 할 수 있다. 이것을 트랜잭션 없이 읽기(Nontransactional reads)라 한다.
+
+
+만약 트랜잭션 범위 밖인 컨트롤러와 뷰에서 엔티티를 수정하여도 영속성 컨텍스트의 변경 감지에 의한 데이터 수정이 다음 2가지 이유로 동작하지 않는다.
+
+ * 영속성 컨텍스트의 변경 내용을 데이터베이스에 반영하려면 영속성 컨텍스트를 플러시(flush)해야 한다. 스프링이 제공하는 OSIV는 요청이 끝나면
+   플러시를 호출하지 않고 em.close()로 영속성 컨텍스트만 종료시켜 버린다.
+
+ * 프레젠테이션 계층에서 em.flush()를 호출하여 강제로 플러시해도 트랜잭션 범위 밖이므로 데이터를 수정할 수 없다는 예외가 일어난다.
+   → javax.persistence.TransactionRequiredException
+
+
+ open-in-view: false # or true (둘중 하나로 결정만 하면 warning 제거)
