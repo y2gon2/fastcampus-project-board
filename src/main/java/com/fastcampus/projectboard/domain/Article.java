@@ -42,7 +42,7 @@ public class Article extends AuditingFields {
     @ToString.Exclude
     @OrderBy("createdAt DESC")  /// 시간순 정렬??
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
-    private final Set<ArticleComment> articleCommentSet = new LinkedHashSet<>(); // 양방향 binding 으로 게시글에 연관된 댓글 리스트를 출력하기 위한 코드
+    private final Set<ArticleComment> articleComments = new LinkedHashSet<>(); // 양방향 binding 으로 게시글에 연관된 댓글 리스트를 출력하기 위한 코드
 
     // meta data
     //
