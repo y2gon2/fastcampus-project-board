@@ -3,13 +3,7 @@ package com.fastcampus.projectboard.domain;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -20,7 +14,7 @@ import javax.persistence.*;
 // 해당 project 에서 id 값의 경우, 시스템에서 부여되는 값을 그대로 사용하고 외부에서 값을 설정하지 못하도록
 // 이와 같이 각각 필요한 field 에만 붙여줌.
 @Getter
-@ToString
+@ToString(callSuper = true)
 @Table(indexes = { // 검색 가능한 column 들?
         @Index(columnList = "title"),
         @Index(columnList = "hashtag"),
@@ -36,6 +30,8 @@ public class Article extends AuditingFields {
     // GeneratedValue -> auto increment 기능 사용
     // GenerationType.IDENTITY : mySQL auto increment 방식
 
+    @Setter @ManyToOne(optional = false) private UserAccount userAccount;  // 여러 Article 들이 하나의 userAccount 를 가질 수 있음.
+
     @Setter @Column(nullable = false) private String title;   // notNull
     @Setter @Column(nullable = false, length = 10000) private String content; // notNull
 
@@ -44,9 +40,9 @@ public class Article extends AuditingFields {
     // 양방향 data (one to many)
     // 이 article 에 연동되어 있는 모든 comment 들을 중복되지 않게 모아서 collection 으로 보겠다?
     @ToString.Exclude
-    @OrderBy("id")
+    @OrderBy("createdAt DESC")  /// 시간순 정렬??
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
-    private final Set<ArticleComment> articleCommentSet = new LinkedHashSet<>();
+    private final Set<ArticleComment> articleComments = new LinkedHashSet<>(); // 양방향 binding 으로 게시글에 연관된 댓글 리스트를 출력하기 위한 코드
 
     // meta data
     //
@@ -65,14 +61,15 @@ public class Article extends AuditingFields {
     protected Article() {}
 
     // id & metadata 제외 data 만 넣는 생성자 -> factory method 에서만 접근 가능하도록
-    private Article(String title, String content, String hashtag) {
+    private Article(UserAccount userAccount, String title, String content, String hashtag) {
+        this.userAccount = userAccount;
         this.title = title;
         this.content = content;
         this.hashtag = hashtag;
     }
 
-    public static Article of(String title, String content, String hashtag) {
-        return new Article(title, content, hashtag);
+    public static Article of(UserAccount userAccount, String title, String content, String hashtag) {
+        return new Article(userAccount, title, content, hashtag);
     }
 
     @Override
@@ -88,3 +85,4 @@ public class Article extends AuditingFields {
         return Objects.hash(id);
     }
 }
+

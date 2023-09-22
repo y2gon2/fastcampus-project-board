@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.fastcampus.projectboard.config.JpaConfig;
 import com.fastcampus.projectboard.domain.Article;
+import com.fastcampus.projectboard.domain.UserAccount;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +52,10 @@ class JpaRepositoryTest {
     void givenTestData_whieInsert_thenWorkFine() {
         // Given
         long previousCount =  articleRepository.count();
+        UserAccount userAccount = UserAccount.of("1", "password", "email", "nickname", "memo");
 
         // When
-        Article savedArticle = articleRepository.save(Article.of("new article", "new content", "#spring"));
+        Article savedArticle = articleRepository.save(Article.of(userAccount, "new article", "new content", "#spring"));
 
         // Then
         assertThat(articleRepository.count()).isEqualTo(previousCount + 1);
@@ -81,7 +83,7 @@ class JpaRepositoryTest {
         Article article = articleRepository.findById(1L).orElseThrow();
         long previousArticleCount = articleRepository.count();
         long previousArticleCommentCount = articleCommentRepository.count();
-        int deletedCommentsSize = article.getArticleCommentSet().size();
+        int deletedCommentsSize = article.getArticleComments().size();
 
         // When
         articleRepository.delete(article);
