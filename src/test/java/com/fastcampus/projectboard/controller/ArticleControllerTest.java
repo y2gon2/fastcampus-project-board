@@ -4,6 +4,7 @@ import com.fastcampus.projectboard.config.SecurityConfig;
 import com.fastcampus.projectboard.dto.ArticleWithCommentsDto;
 import com.fastcampus.projectboard.dto.UserAccountDto;
 import com.fastcampus.projectboard.service.ArticleService;
+import com.fastcampus.projectboard.service.PaginationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
@@ -12,17 +13,20 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -37,6 +41,7 @@ class ArticleControllerTest {
 
     // 반대로 @MockBean 은 construction injection 으로 사용 불가
     @MockBean private ArticleService articleService;
+    @MockBean private PaginationService paginationService;
 
     public ArticleControllerTest(@Autowired MockMvc mvc) {
         this.mvc = mvc;
@@ -50,14 +55,48 @@ class ArticleControllerTest {
         // 그래서 이때 두번째 argument 가 '아무거나'가 아닌 'null' 이여야 한다.
         // 해당 조건에서 eq() method 를 사용하면 된다. ... 무슨소리인지 모르겠다...;;;
         given(articleService.searchArticles(eq(null), eq(null), any(Pageable.class))).willReturn(Page.empty());
+        given(paginationService.getPaginationBarNumbers(anyInt(), anyInt())).willReturn(List.of(0, 1, 2, 3, 4));
 
         // When & Then
         mvc.perform(MockMvcRequestBuilders.get("/articles")) // 해당 url 요청에 대한 test??
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(view().name("articles/index"))
-                .andExpect(model().attributeExists("articles")); // 서버에서 게시글 목록을 받았을 view 로 articles attribute 이 전달되었는지 확인
+                .andExpect(model().attributeExists("articles"))
+                .andExpect(model().attributeExists("paginationBarNumbers")); // 서버에서 게시글 목록을 받았을 view 로 articles attribute 이 전달되었는지 확인
         then(articleService).should().searchArticles(eq(null), eq(null), any(Pageable.class));
+        then(paginationService).should().getPaginationBarNumbers(anyInt(), anyInt());
+    }
+
+    @DisplayName("[view][GET] 게시글 list (게시판) page, paging, sorting 기능")
+    @Test
+    void givenPagingAndSortingParams_whenSearchingArticlesPage_thenReturnsArticlesPage() throws Exception {
+        // Given
+        String sortName = "title";
+        String direction = "desc";
+        int pageNumber = 0;
+        int pageSize = 5;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Order.desc(sortName)));
+        List<Integer> barNumbers = List.of(1, 2, 3, 4, 5);
+        given(articleService.searchArticles(null, null, pageable)).willReturn(Page.empty());
+        given(paginationService.getPaginationBarNumbers(pageable.getPageNumber(), Page.empty().getTotalPages())).willReturn(barNumbers);
+
+        // When & Then
+        mvc.perform(MockMvcRequestBuilders.get("/articles")
+                        // 아래와 같은 GET 요청에 대한 queryParmeter 를 받으면,
+                        // (Spring 내부적으로 ??) 처리되어  pageable 객체로 바뀜
+                        .queryParam("page", String.valueOf(pageNumber))
+                        .queryParam("size", String.valueOf(pageSize))
+                        .queryParam("sort", sortName + "," + direction)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(view().name("articles/index"))
+                .andExpect(model().attribute("paginationBarNumbers", barNumbers));
+        then(articleService).should().searchArticles(null, null, pageable);
+
+        // 위에서 넣은 qurey parameter 로 pageable 변환되어 받아진 것이 이미 설정해 놓은 pageable 과 일치하는지릃 확인
+        then(paginationService).should().getPaginationBarNumbers(pageable.getPageNumber(), Page.empty().getTotalPages());
     }
 
     @DisplayName("[view][GET] 게시글 상세 페이지 - 정상호출")
