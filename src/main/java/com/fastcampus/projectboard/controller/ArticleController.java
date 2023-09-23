@@ -48,8 +48,11 @@ public class ArticleController {
     @GetMapping("/{articleId}") // 우선 내부 로직 구현 없이 routing 작업에 대해서만 처리
     public String article(@PathVariable Long articleId, ModelMap map) {
         ArticleWithCommentsResponse article = ArticleWithCommentsResponse.from(articleService.getArticle(articleId));
+
         map.addAttribute("article", article);
         map.addAttribute("articleComments", article.articleCommentsResponse());
+        map.addAttribute("totalCount", articleService.getArticleCount());
+
         return "articles/detail";
     }
 }
