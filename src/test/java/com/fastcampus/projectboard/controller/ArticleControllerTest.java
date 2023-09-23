@@ -1,6 +1,7 @@
 package com.fastcampus.projectboard.controller;
 
 import com.fastcampus.projectboard.config.SecurityConfig;
+import com.fastcampus.projectboard.domain.type.SearchType;
 import com.fastcampus.projectboard.dto.ArticleWithCommentsDto;
 import com.fastcampus.projectboard.dto.UserAccountDto;
 import com.fastcampus.projectboard.service.ArticleService;
@@ -50,7 +51,7 @@ class ArticleControllerTest {
 
     @DisplayName("[view][GET] 게시글 리스트 (게시판 페이지) - 정상호출")
     @Test
-    public void givenNothing_whenRequestingArticlesView_thenReturnsAritclesView() throws Exception{
+    public void givenNothing_whenRequestingArticlesView_thenReturnsArticlesView() throws Exception{
         //Given
         // argument matcher 인데 field 중 일부만 matcher 를 할 수 없다
         // 그래서 이때 두번째 argument 가 '아무거나'가 아닌 'null' 이여야 한다.
@@ -69,9 +70,32 @@ class ArticleControllerTest {
         then(paginationService).should().getPaginationBarNumbers(anyInt(), anyInt());
     }
 
+    @DisplayName("[view][GET] 게시글 리스트 (게시판 페이지) - 검색어와 함께 호출")
+    @Test
+    public void givenSearchKeyword_whenRequestingArticlesView_thenReturnsArticlesView() throws Exception{
+        //Given
+        SearchType searchType = SearchType.TITLE;
+        String searchValue = "title";
+        given(articleService.searchArticles(eq(searchType), eq(searchValue), any(Pageable.class))).willReturn(Page.empty());
+        given(paginationService.getPaginationBarNumbers(anyInt(), anyInt())).willReturn(List.of(0, 1, 2, 3, 4));
+
+        // When & Then
+        mvc.perform(MockMvcRequestBuilders.get("/articles")
+                        .queryParam("searchType", searchType.name())
+                        .queryParam("searchValue", searchValue)
+                ) // 해당 url 요청에 대한 test??
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(view().name("articles/index"))
+                .andExpect(model().attributeExists("articles"))
+                .andExpect(model().attributeExists("searchTypes")); // 검색 항목을 기존 html 적힌 text 였으나 이걸 서버로부터 받을 수 있도록 작업할 것이므로 attribute 로 추가
+        then(articleService).should().searchArticles(eq(searchType), eq(searchValue), any(Pageable.class));
+        then(paginationService).should().getPaginationBarNumbers(anyInt(), anyInt());
+    }
+
     @DisplayName("[view][GET] 게시글 list (게시판) page, paging, sorting 기능")
     @Test
-    void givenPagingAndSortingParams_whenSearchingArticlesPage_thenReturnsArticlesPage() throws Exception {
+    void givenPagingAndSortingParams_whenSearchingArticlesView_thenReturnsArticlesView() throws Exception {
         // Given
         String sortName = "title";
         String direction = "desc";
