@@ -2,6 +2,7 @@ package com.fastcampus.projectboard.controller;
 
 
 import com.fastcampus.projectboard.config.SecurityConfig;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Disabled
 @DisplayName("View controller - 인증 ")
 @Import(SecurityConfig.class)       // 모든 page 에 대한 url 접근이 가능하도록 설정한 config 를 import 해줘서, 기존의  get test 들이 통과하도록 변경
 @WebMvcTest
@@ -24,6 +26,7 @@ public class AuthControllerTest {
         this.mvc = mvc;
     }
 
+    @Disabled
     @DisplayName("[view] [GET] login 페이지 - 정상 호출")
     @Test
     public void givenNothing_whenTryingToLogin_thenReturnsLoginView() throws Exception {

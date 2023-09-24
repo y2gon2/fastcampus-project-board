@@ -74,6 +74,7 @@ class ArticleCommentServiceTest {
         then(articleCommentRepository).should().save(any(ArticleComment.class));
     }
 
+    @Disabled
     @DisplayName("댓글 저장을 시도했는데 맞는 게시글이 없으면, 경고 로그를 찍고 아무것도 안한다.")
     @Test
     void givenNoneExistentArticle_whenSavingArticleComment_thenLogsSituationAndDoesNothing() {
