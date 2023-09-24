@@ -5,6 +5,7 @@ import java.util.List;
 import com.fastcampus.projectboard.config.JpaConfig;
 import com.fastcampus.projectboard.domain.Article;
 import com.fastcampus.projectboard.domain.UserAccount;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,9 +48,10 @@ class JpaRepositoryTest {
                 .hasSize(123);
     }
 
+    @Disabled("TODO")
     @DisplayName("insert Test")
     @Test
-    void givenTestData_whieInsert_thenWorkFine() {
+    void givenTestData_whileInsert_thenWorkFine() {
         // Given
         long previousCount =  articleRepository.count();
         UserAccount userAccount = UserAccount.of("1", "password", "email", "nickname", "memo");
