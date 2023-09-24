@@ -37,6 +37,7 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools' // 사용자 custom configuraton 을 잡아주는 tool??
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
 
     // queryDSL 설정
     implementation "com.querydsl:querydsl-jpa" // 해당 library 와 같이 일반적인  경우 ...jpa:version 정보 가 입력되게 되는데
