@@ -1,4 +1,4 @@
-package com.fastcampus.projectboard.cotroller;
+package com.fastcampus.projectboard.controller;
 
 
 import org.junit.jupiter.api.Disabled;

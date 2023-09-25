@@ -1,4 +1,4 @@
-package com.fastcampus.projectboard.cotroller;
+package com.fastcampus.projectboard.controller;
 
 import com.fastcampus.projectboard.config.SecurityConfig;
 import com.fastcampus.projectboard.controller.MainController;
