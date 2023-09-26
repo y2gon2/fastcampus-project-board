@@ -7,6 +7,7 @@ import com.fastcampus.projectboard.dto.ArticleCommentDto;
 import com.fastcampus.projectboard.dto.UserAccountDto;
 import com.fastcampus.projectboard.repository.ArticleCommentRepository;
 import com.fastcampus.projectboard.repository.ArticleRepository;
+import com.fastcampus.projectboard.repository.UserAccountRepository;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,8 +31,9 @@ class ArticleCommentServiceTest {
 
     @Mock private ArticleCommentRepository articleCommentRepository;
     @Mock private ArticleRepository articleRepository;
+    @Mock private UserAccountRepository userAccountRepository;
 
-    @Disabled
+
     @DisplayName("게시글 ID로 조회하면, 해당하는 댓글 리스트를 반환한다.")
     @Test
     void givenArticleID_whenSearchingArticleComments_thenReturnsArticleComments() {
@@ -56,13 +58,14 @@ class ArticleCommentServiceTest {
         //       -> 따라서 assertThat() 과 같이, 예상되는 결과값과의 비교가 필요.
     }
 
-    @Disabled
+
     @DisplayName("댓글 정보를 입력하면, 댓글을 저장한다.")
     @Test
-    void givenArticleCommentInfo_whenSavingArticleComment_thenSavedArticleComment() {
+    void givenArticleCommentInfo_whenSavingArticleComment_thenSavesArticleComment() {
         // Given
         ArticleCommentDto dto = createArticleCommentDto("댓글");
         given(articleRepository.getReferenceById(dto.articleId())).willReturn(createArticle());
+        given(userAccountRepository.getReferenceById(dto.userAccountDto().userId())).willReturn(createUserAccount());
         given(articleCommentRepository.save(any(ArticleComment.class))).willReturn(null);
 
         // When
@@ -70,10 +73,11 @@ class ArticleCommentServiceTest {
 
         // Then
         then(articleRepository).should().getReferenceById(dto.articleId());
+        then(userAccountRepository).should().getReferenceById(dto.userAccountDto().userId());
         then(articleCommentRepository).should().save(any(ArticleComment.class));
     }
 
-    @Disabled
+
     @DisplayName("댓글 저장을 시도했는데 맞는 게시글이 없으면, 경고 로그를 찍고 아무것도 안한다.")
     @Test
     void givenNoneExistentArticle_whenSavingArticleComment_thenLogsSituationAndDoesNothing() {
@@ -86,11 +90,11 @@ class ArticleCommentServiceTest {
 
         // Then
         then(articleRepository).should().getReferenceById(dto.articleId());
+        then(userAccountRepository).shouldHaveNoInteractions();
         then(articleCommentRepository).shouldHaveNoInteractions();
     }
 
 
-    @Disabled
     @DisplayName("댓글 정보를 입력하면, 댓글을 수정한다.")
     @Test
     void givenArticleCommentIdAndModifiedInfo_whenUpdatingArticleComment_thenUpdatesArticleComment() {
@@ -102,7 +106,7 @@ class ArticleCommentServiceTest {
         given(articleCommentRepository.getReferenceById(dto.id())).willReturn(articleComment);
 
         // When
-        sut.upateArticleComment(dto);
+        sut.updateArticleComment(dto);
 
         // Then
         assertThat(articleComment.getContent())
@@ -111,7 +115,7 @@ class ArticleCommentServiceTest {
         then(articleCommentRepository).should().getReferenceById(dto.id());
     }
 
-    @Disabled
+
     @DisplayName("없는 댓글 정보를 수정하려고 하면, 경고 로그를 찍고 아무 것도 안 한다.")
     @Test
     void givenNoneExistentArticleComment_whenUpdatingComment_thenLogsWarningAndDoesNothing() {
@@ -120,13 +124,13 @@ class ArticleCommentServiceTest {
         given(articleCommentRepository.getReferenceById(dto.id())).willThrow(EntityNotFoundException.class);
 
         // When
-        sut.upateArticleComment(dto);
+        sut.updateArticleComment(dto);
 
         // Then
         then(articleCommentRepository).should().getReferenceById(dto.id());
     }
 
-    @Disabled
+
     @DisplayName("댓글 ID를 입력하면, 댓글을 삭제한다.")
     @Test
     void givenArticleCommentId_whenDeletingArticleComment_thenDeletesArticleComment() {
@@ -150,23 +154,23 @@ class ArticleCommentServiceTest {
                 createUserAccountDto(),
                 content,
                 LocalDateTime.now(),
-                "gon",
+                "uno",
                 LocalDateTime.now(),
-                "gon"
+                "uno"
         );
     }
 
     private UserAccountDto createUserAccountDto() {
         return UserAccountDto.of(
-                "gon",
+                "uno",
                 "password",
-                "gon@mail.com",
-                "Gon",
+                "uno@mail.com",
+                "Uno",
                 "This is memo",
                 LocalDateTime.now(),
-                "gon",
+                "uno",
                 LocalDateTime.now(),
-                "gon"
+                "uno"
         );
     }
 
@@ -189,10 +193,10 @@ class ArticleCommentServiceTest {
 
     private UserAccount createUserAccount() {
         return UserAccount.of(
-                "gon",
+                "uno",
                 "password",
-                "gon@email.com",
-                "gon",
+                "uno@email.com",
+                "Uno",
                 null
         );
     }
