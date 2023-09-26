@@ -11,18 +11,14 @@ import java.util.Objects;
 @Getter
 @ToString
 @Table(indexes = {
-        @Index(columnList = "userId", unique = true),
         @Index(columnList = "email", unique = true),
         @Index(columnList = "createdAt"),
         @Index(columnList = "createdBy")
 })
 @Entity
 public class UserAccount extends AuditingFields {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id @Column(length = 50) private String userId;
 
-    @Setter @Column(nullable = false, length = 50) private String userId;
     @Setter @Column(nullable = false) private String userPassword;
 
     @Setter @Column(length = 100) private String email;
@@ -48,11 +44,11 @@ public class UserAccount extends AuditingFields {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserAccount that = (UserAccount) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(userId, that.userId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(userId);
     }
 }
