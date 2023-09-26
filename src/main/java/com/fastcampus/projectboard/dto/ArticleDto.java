@@ -1,6 +1,7 @@
 package com.fastcampus.projectboard.dto;
 
 import com.fastcampus.projectboard.domain.Article;
+import com.fastcampus.projectboard.domain.UserAccount;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +19,25 @@ public record ArticleDto(
         LocalDateTime modifiedAt,
         String modifiedBy
 ) {
+
+    public static ArticleDto of(
+            UserAccountDto userAccountDto,
+            String title,
+            String content,
+            String hashtag
+            ) {
+        return new ArticleDto(
+                null,
+                userAccountDto,
+                title,
+                content,
+                hashtag,
+                null,
+                null,
+                null,
+                null);
+    }
+
     // record 에서 parameter input constructor 는 내부적으로 자동 생성되어 있음.
     public static ArticleDto of(Long id,
                                 UserAccountDto userAccountDto,
@@ -53,9 +73,9 @@ public record ArticleDto(
     }
 
     // DTO 로부터 entity 생성
-    public Article toEntity() {
+    public Article toEntity(UserAccount userAccount) {
         return Article.of(
-                userAccountDto.toEntity(),
+                userAccount,
                 title,
                 content,
                 hashtag
