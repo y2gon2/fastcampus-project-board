@@ -23,7 +23,7 @@ public class ArticleCommentController {
     ) {
         // TODO: 인증 정보를 넣어줘야 한다.
         articleCommentService.saveArticleComment(articleCommentRequest.toDto(UserAccountDto.of(
-                "gon", "pw", "gon@mail.com", null, null
+                "uno", "pw", "uno@mail.com", null, null
         )));
 
         return "redirect:/articles/" + articleCommentRequest.articleId();
@@ -34,7 +34,7 @@ public class ArticleCommentController {
             @PathVariable Long commentId,
             Long articleId
     ) {
-        articleCommentService.deleteArticleComment(articleId);
+        articleCommentService.deleteArticleComment(commentId);
         return "redirect:/articles/" + articleId;
     }
 
