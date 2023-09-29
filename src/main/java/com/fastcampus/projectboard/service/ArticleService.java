@@ -66,22 +66,35 @@ public class ArticleService {
     public void saveArticle(ArticleDto dto) {
         UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().userId());
         articleRepository.save(dto.toEntity(userAccount));
+        log.info("새글  title : {}  content : {}", dto.title(), dto.content());
     }
 
     public void updateArticle(Long articleId, ArticleDto dto) {
+        log.info("실행됨????");
         try {
-            Article article = articleRepository.getReferenceById(articleId); // 게시글 작성자
-            UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().userId()); // 현재 작업을 요청한 작성자
+            Article article = articleRepository.getReferenceById(articleId);
+            UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().userId());
 
-            if (article.getUserAccount().equals(userAccount)) { // 두 작성자 id 가 같다면
-                if (dto.title() != null) { article.setTitle(dto.title()); }
-                if (dto.content() != null) { article.setContent(dto.content()); }
+            log.info("선택된 글 작성 계정: {}", article.getUserAccount());
+            log.info("수정 요청자 계정  : {}", userAccount);
+            log.info("같냐??  {}", article.getUserAccount().getUserId().equals(userAccount.getUserId()));
+            if (article.getUserAccount().getUserId().equals(userAccount.getUserId())) {
+                if (dto.title() != null) {
+                    article.setTitle(dto.title());
+                    log.info("제목 수정됨 {}", dto.title());
+                }
+                if (dto.content() != null) {
+                    article.setContent(dto.content());
+                    log.info("내용 수정됨 {}", dto.content());
+                }
                 article.setHashtag(dto.hashtag());
+                log.info("수정 완료!!!!");
             }
         } catch (EntityNotFoundException e) {
-            log.warn("게시글 업데이트 실패, 게시글을 수정하는데 필요한 정보를 찾을 수 없습니다. - {}", e.getLocalizedMessage());
+            log.warn("게시글 업데이트 실패. 게시글을 수정하는데 필요한 정보를 찾을 수 없습니다 - {}", e.getLocalizedMessage());
         }
 
+        log.info("작업 완료????????????????");
         // articleRepository.save(article); // -> save 명령 없어도 됨
         // class level Transactional 이 구현되어 있으므로,
         // method transactional 이 묶여 있는 상태임.
