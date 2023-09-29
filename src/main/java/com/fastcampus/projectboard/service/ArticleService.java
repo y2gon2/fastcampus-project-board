@@ -66,18 +66,35 @@ public class ArticleService {
     public void saveArticle(ArticleDto dto) {
         UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().userId());
         articleRepository.save(dto.toEntity(userAccount));
+        log.info("새글  title : {}  content : {}", dto.title(), dto.content());
     }
 
     public void updateArticle(Long articleId, ArticleDto dto) {
+        log.info("실행됨????");
         try {
             Article article = articleRepository.getReferenceById(articleId);
-            if (dto.title() != null) { article.setTitle(dto.title()); }
-            if (dto.content() != null) { article.setContent(dto.content()); }
-            article.setHashtag(dto.hashtag());
+            UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().userId());
+
+            log.info("선택된 글 작성 계정: {}", article.getUserAccount());
+            log.info("수정 요청자 계정  : {}", userAccount);
+            log.info("같냐??  {}", article.getUserAccount().getUserId().equals(userAccount.getUserId()));
+            if (article.getUserAccount().getUserId().equals(userAccount.getUserId())) {
+                if (dto.title() != null) {
+                    article.setTitle(dto.title());
+                    log.info("제목 수정됨 {}", dto.title());
+                }
+                if (dto.content() != null) {
+                    article.setContent(dto.content());
+                    log.info("내용 수정됨 {}", dto.content());
+                }
+                article.setHashtag(dto.hashtag());
+                log.info("수정 완료!!!!");
+            }
         } catch (EntityNotFoundException e) {
-            log.warn("게시글 업데이트 실패, 게시글을 찾을 수 없습니다. - dto: {}", dto);
+            log.warn("게시글 업데이트 실패. 게시글을 수정하는데 필요한 정보를 찾을 수 없습니다 - {}", e.getLocalizedMessage());
         }
 
+        log.info("작업 완료????????????????");
         // articleRepository.save(article); // -> save 명령 없어도 됨
         // class level Transactional 이 구현되어 있으므로,
         // method transactional 이 묶여 있는 상태임.
@@ -86,8 +103,8 @@ public class ArticleService {
         // 그리고 수정사항에 대한 query 를 날림.
     }
 
-    public void deleteArticle(long articleId) {
-        articleRepository.deleteById(articleId);
+    public void deleteArticle(long articleId, String userID) {
+        articleRepository.deleteByIdAndUserAccount_UserId(articleId, userID);
     }
 
     public long getArticleCount() {

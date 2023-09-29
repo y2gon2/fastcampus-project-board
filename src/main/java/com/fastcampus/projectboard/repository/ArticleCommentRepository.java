@@ -20,6 +20,8 @@ public interface ArticleCommentRepository extends
 {
     List<ArticleComment> findByArticle_Id(Long articleId);
 
+    void deleteByIdAndUserAccount_UserId(long articleCommentId, String userId);
+
     @Override
     default void customize(QuerydslBindings bindings, QArticleComment root) {
         bindings.excludeUnlistedProperties(true); // 기본 검색 모든 field 검색 기능을 가진 상태를 다시 제외 시키고
@@ -29,5 +31,6 @@ public interface ArticleCommentRepository extends
         bindings.bind(root.createdAt).first(DateTimeExpression::eq);
         bindings.bind(root.createdBy).first(StringExpression::containsIgnoreCase);
     }
+
 }
 

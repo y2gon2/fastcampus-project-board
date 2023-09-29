@@ -1,6 +1,6 @@
 package com.fastcampus.projectboard.controller;
 
-import com.fastcampus.projectboard.config.SecurityConfig;
+import com.fastcampus.projectboard.config.TestSecurityConfig;
 import com.fastcampus.projectboard.domain.constant.FormStatus;
 import com.fastcampus.projectboard.domain.constant.SearchType;
 import com.fastcampus.projectboard.dto.ArticleDto;
@@ -8,7 +8,6 @@ import com.fastcampus.projectboard.dto.ArticleWithCommentsDto;
 import com.fastcampus.projectboard.dto.UserAccountDto;
 import com.fastcampus.projectboard.dto.request.ArticleRequest;
 import com.fastcampus.projectboard.dto.response.ArticleResponse;
-import com.fastcampus.projectboard.repository.ArticleRepository;
 import com.fastcampus.projectboard.service.ArticleService;
 import com.fastcampus.projectboard.service.PaginationService;
 import com.fastcampus.projectboard.util.FormDataEncoder;
@@ -24,6 +23,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -38,8 +40,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+// SecurityConfig -> TestSecurityConfig.class
+// Test 중 사용자 계정 인증과 관련된 부분에 대해서는 TestSecurityConfig 에서 임이 계정으로
+// 인증 과정을 통과할 수 있도록 만들어 놓은 것을 대신 사용함.
+// article controller 상에서 test 의 대상 자체가 security 인 부분은 없으므로
+// 인증이 통과된다는 전제가 필요한 test 에 대해서 해당 조건을 사용하고 있으므로
+// 임의로 test 를 통과시키는 TestSecurityConfig 를 사용하는 것이 합리적임.
+// test 과정상 UserAccountRepository 를 건드리는 부분은 해당 import 와 관계없이 동작함.
 @DisplayName("View controller - 게시글")
-@Import({SecurityConfig.class, FormDataEncoder.class})       // 모든 page 에 대한 url 접근이 가능하도록 설정한 config 를 import 해줘서, 기존의  get test 들이 통과하도록 변경
+@Import({TestSecurityConfig.class, FormDataEncoder.class})       // 모든 page 에 대한 url 접근이 가능하도록 설정한 config 를 import 해줘서, 기존의  get test 들이 통과하도록 변경
 @WebMvcTest(ArticleController.class) // Bean 을 생성할 class 지정
 class ArticleControllerTest {
 
@@ -134,7 +143,26 @@ class ArticleControllerTest {
         then(paginationService).should().getPaginationBarNumbers(pageable.getPageNumber(), Page.empty().getTotalPages());
     }
 
-    @DisplayName("[view][GET] 게시글 페이지 - 정상 호출")
+    @DisplayName("[view][GET] 게시글 페이지 - 인증 없을 땐 로그인 페이지로 이동")
+    @Test
+    void givenNothing_whenRequestingArticlePage_thenRedirectsToLoginPage() throws Exception {
+        // Given
+        long articleId = 1L;
+
+        // When & Then
+        mvc.perform(MockMvcRequestBuilders.get("/articles/" + articleId))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+
+        then(articleService).shouldHaveNoInteractions();
+    }
+
+    // @WithMockUser
+    // user 정보를 mocking 해서 넣어줌. 단순히 인증되었다 치고 넘거가줌.
+    // 실제 사용자 정보를 사용하지 않는 단점이 있음
+    // 따라서 게시글을 추가, 수정, 삭제와 같이 영속성 작업을 위해 계정 정보가 필요할 때 해당 annotation 사용 한계가 발생한다.
+    @WithMockUser
+    @DisplayName("[view][GET] 게시글 페이지 - 정상 호출, 인증된 사용자")
     @Test
     public void givenNothing_whenRequestingArticleView_thenReturnsArticleView() throws Exception {
         // Given
@@ -220,6 +248,7 @@ class ArticleControllerTest {
         then(articleService).should().searchArticlesViaHashtag(eq(hashtag), any(Pageable.class));
     }
 
+    @WithMockUser
     @DisplayName("[view][GET] 새 게시글 작성 페이지")
     @Test
     void givenNothing_whenRequesting_thenReturnNewArticlePage() throws Exception {
@@ -233,9 +262,12 @@ class ArticleControllerTest {
                 .andExpect(model().attribute("formStatus", FormStatus.CREATE));
     }
 
+    // 새 게시글을 등록하려면 사용자계정 정보가 필요하므로 @WithMockUser 를 사용할 수 없음.
+    //                                   test 실행 직전에 이 setup 을 맞춰라(시작해라).           해당 BeanName 을 직접 지정 (현재 구현된 해당 bean 는 하나밖에 없으므로 생략 가능)
+    @WithUserDetails(value = "unoTest", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsService")
     @DisplayName("[view][GET] 새 게시글 등록 - 정상 호출")
     @Test
-    void givenNewArticleInfo_whenRequesting_thenSavsNewArticle() throws Exception {
+    void givenNewArticleInfo_whenRequesting_thenSavesNewArticle() throws Exception {
         // Given
         ArticleRequest articleRequest = ArticleRequest.of(
                 "new title", "new content", "#ne"
@@ -256,7 +288,8 @@ class ArticleControllerTest {
         then(articleService).should().saveArticle(any(ArticleDto.class));
     }
 
-    @DisplayName("[view][GET] 게시글 수정 페이지")
+    @WithMockUser
+    @DisplayName("[view][GET] 게시글 수정 페이지 - 정상 호출, 인증된 사용자")
     @Test
     void givenNothing_whenRequesting_thenReturnsUpdatedArticlePage() throws Exception {
         // Given
@@ -274,6 +307,7 @@ class ArticleControllerTest {
         then(articleService).should().getArticle(articleId);
     }
 
+    @WithUserDetails(value = "unoTest", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsService")
     @DisplayName("[view][POST] 게시글 수정 - 정상 호출")
     @Test
     void givenNothing_whenRequesting_thenReturnsUpdatedNewArticle() throws Exception {
@@ -300,15 +334,17 @@ class ArticleControllerTest {
         then(articleService).should().updateArticle(eq(articleId), any(ArticleDto.class));
     }
 
+    @WithUserDetails(value = "unoTest", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsService")
     @DisplayName("[view][POST] 게시글 삭제 - 정상 호출")
     @Test
     void givenArticleIdToDelete_whenRequesting_thenDeletesArticle() throws  Exception {
         // Given
         long articleId = 1L;
+        String userId = "unoTest";
         ArticleRequest articleRequest = ArticleRequest.of(
                 "new title", "new content", "#new"
         );
-        willDoNothing().given(articleService).deleteArticle(articleId);
+        willDoNothing().given(articleService).deleteArticle(articleId, userId); // 작성자 외 삭제를 불가능하게 하기 위해 계정 정보도 넣어줌
 
         // When & Then
         mvc.perform(
@@ -321,7 +357,7 @@ class ArticleControllerTest {
                 .andExpect(view().name("redirect:/articles"))
                 .andExpect(redirectedUrl("/articles"));
 
-        then(articleService).should().deleteArticle(articleId);
+        then(articleService).should().deleteArticle(articleId, userId);
     }
 
 

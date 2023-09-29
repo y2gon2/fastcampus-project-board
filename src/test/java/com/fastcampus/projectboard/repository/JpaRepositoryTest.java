@@ -1,6 +1,7 @@
 package com.fastcampus.projectboard.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.fastcampus.projectboard.config.JpaConfig;
 import com.fastcampus.projectboard.domain.Article;
@@ -11,7 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.*;
@@ -19,19 +24,22 @@ import static org.assertj.core.api.Assertions.*;
 //@ActiveProfiles("testdb")
 //@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DisplayName("JPA 연결 test")
-@Import(JpaConfig.class)
+@Import(JpaRepositoryTest.TestJpaConfig.class)  // 기존 JpaConfig.Class 를 대신 사용 (해당 test 에서만 Auditing 이 임의로 통과시키도록)
 @DataJpaTest
 class JpaRepositoryTest {
 
     private final ArticleRepository articleRepository;
     private final ArticleCommentRepository articleCommentRepository;
+    private final UserAccountRepository userAccountRepository;
 
     public JpaRepositoryTest(
             @Autowired ArticleRepository articleRepository,
-            @Autowired ArticleCommentRepository articleCommentRepository
+            @Autowired ArticleCommentRepository articleCommentRepository,
+            @Autowired UserAccountRepository userAccountRepository
     ) {
         this.articleRepository = articleRepository;
         this.articleCommentRepository = articleCommentRepository;
+        this.userAccountRepository = userAccountRepository;
     }
 
     @DisplayName("select Test")
@@ -48,16 +56,21 @@ class JpaRepositoryTest {
                 .hasSize(123);
     }
 
-    @Disabled("TODO")
     @DisplayName("insert Test")
     @Test
     void givenTestData_whileInsert_thenWorkFine() {
         // Given
         long previousCount =  articleRepository.count();
-        UserAccount userAccount = UserAccount.of("1", "password", "email", "nickname", "memo");
+        UserAccount userAccount = userAccountRepository.save(
+                UserAccount.of(
+                        "newUno", "password", "email", "nickname", "memo"
+                ));
+        Article article = Article.of(
+                        userAccount, "new article", "new content", "#spring"
+                );
 
         // When
-        Article savedArticle = articleRepository.save(Article.of(userAccount, "new article", "new content", "#spring"));
+        articleRepository.save(article);
 
         // Then
         assertThat(articleRepository.count()).isEqualTo(previousCount + 1);
@@ -93,6 +106,17 @@ class JpaRepositoryTest {
         // Then
         assertThat(articleRepository.count()).isEqualTo(previousArticleCount - 1);
         assertThat(articleCommentRepository.count()).isEqualTo(previousArticleCommentCount - deletedCommentsSize);
+    }
+
+    // Auditor 가 사용자 계정 인증을 확인하고 test 에서 인증이 필요한 작업에 대해서 작업 진행을 막고 있으므로
+    // 필요한 test 에서만 Auditor 가 임의로 통과시키도록 설정
+    @EnableJpaAuditing
+    @TestConfiguration
+    public static class TestJpaConfig {
+        @Bean
+        public AuditorAware<String> auditorAware() {
+            return () -> Optional.of("uno");
+        }
     }
 
 }
