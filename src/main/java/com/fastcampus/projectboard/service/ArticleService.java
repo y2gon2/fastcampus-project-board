@@ -70,12 +70,16 @@ public class ArticleService {
 
     public void updateArticle(Long articleId, ArticleDto dto) {
         try {
-            Article article = articleRepository.getReferenceById(articleId);
-            if (dto.title() != null) { article.setTitle(dto.title()); }
-            if (dto.content() != null) { article.setContent(dto.content()); }
-            article.setHashtag(dto.hashtag());
+            Article article = articleRepository.getReferenceById(articleId); // 게시글 작성자
+            UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().userId()); // 현재 작업을 요청한 작성자
+
+            if (article.getUserAccount().equals(userAccount)) { // 두 작성자 id 가 같다면
+                if (dto.title() != null) { article.setTitle(dto.title()); }
+                if (dto.content() != null) { article.setContent(dto.content()); }
+                article.setHashtag(dto.hashtag());
+            }
         } catch (EntityNotFoundException e) {
-            log.warn("게시글 업데이트 실패, 게시글을 찾을 수 없습니다. - dto: {}", dto);
+            log.warn("게시글 업데이트 실패, 게시글을 수정하는데 필요한 정보를 찾을 수 없습니다. - {}", e.getLocalizedMessage());
         }
 
         // articleRepository.save(article); // -> save 명령 없어도 됨
@@ -86,8 +90,8 @@ public class ArticleService {
         // 그리고 수정사항에 대한 query 를 날림.
     }
 
-    public void deleteArticle(long articleId) {
-        articleRepository.deleteById(articleId);
+    public void deleteArticle(long articleId, String userID) {
+        articleRepository.deleteByIdAndUserAccount_UserId(articleId, userID);
     }
 
     public long getArticleCount() {
