@@ -78,3 +78,10 @@ sourceSets {
 clean {
     delete file(generated)
 }
+
+// Heroku 설정
+jar {
+    matifest {
+        attributes('Main-Class': 'com.fastcampus.projectboard.FastCampusProjectBoardApplication')
+    }
+}

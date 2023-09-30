@@ -96,3 +96,12 @@ spring:
   # 그런데 해당 annotation 은 각 test class 에 매번 설정해줘야 한다.
   # 따라서 이 기능을 모든 test 에 전역적으로 사용하고 싶을 때
   # test.database.replace: none 으로 설정
+
+---
+
+spring:
+  config.activate.on-profile: heroku
+  datasource:
+    url: ${CLEARDB_DATABASE_URL}
+  jpa.hibernate.ddl-auto: create
+  sql.init.mode: always
