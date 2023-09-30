@@ -39,7 +39,7 @@ Spring Boot
 
 ## 데모 페이지
 
-* https://project-board-gon-297ce1172e34.herokuapp.com/
+* https://project-board-gon-dc5fa6c1c0e5.herokuapp.com/
 
 게시판 서비스는 강의와 공부 목적으로 만들어진 프로젝트 입니다.
 따라서 강의의 어떤 시점으로든 코드를 찾아가서 쉽게 관찰할 수 있도록 되어 있습니다.
