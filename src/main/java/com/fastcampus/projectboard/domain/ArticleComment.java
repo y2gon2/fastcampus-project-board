@@ -24,8 +24,14 @@ public class ArticleComment extends AuditingFields {
 
     // ManyToOne anntation 에 cascade option -> 해당 entity (댓글)의 변화가 해당 member type (Aritcle) 에 영향을 주어야 하는가?
     // -> 그렇지 않으므로 cascade 는 기본 설정 none 적용 (생략되어 있음.)
-    @Setter @ManyToOne(optional = false) private Article article; // 연관관계 설정 필요
-    @Setter @ManyToOne(optional = false) @JoinColumn(name = "userId") private UserAccount userAccount; // 유저 정보 (ID)
+    @Setter
+    @ManyToOne(optional = false)
+    private Article article; // 연관관계 설정 필요
+
+    @Setter
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "userId")
+    private UserAccount userAccount; // 유저 정보 (ID)
 
     @Setter @Column(nullable = false, length = 500) private String content;
 

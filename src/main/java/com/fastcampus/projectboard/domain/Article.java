@@ -31,7 +31,10 @@ public class Article extends AuditingFields {
     // GenerationType.IDENTITY : mySQL auto increment 방식
 
     // 여러 Article 들이 하나의 userAccount 를 가질 수 있음.
-    @Setter @ManyToOne(optional = false) @JoinColumn(name = "userId") private UserAccount userAccount; // 유저 정보 (ID)
+    @Setter
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "userId")
+    private UserAccount userAccount; // 유저 정보 (ID)
 
     @Setter @Column(nullable = false) private String title;   // notNull
     @Setter @Column(nullable = false, length = 10000) private String content; // notNull
