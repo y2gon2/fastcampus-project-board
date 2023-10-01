@@ -3,7 +3,6 @@ package com.fastcampus.projectboard.controller;
 
 import com.fastcampus.projectboard.domain.constant.FormStatus;
 import com.fastcampus.projectboard.domain.constant.SearchType;
-import com.fastcampus.projectboard.dto.UserAccountDto;
 import com.fastcampus.projectboard.dto.request.ArticleRequest;
 import com.fastcampus.projectboard.dto.response.ArticleResponse;
 import com.fastcampus.projectboard.dto.response.ArticleWithCommentsResponse;

@@ -1,6 +1,5 @@
 package com.fastcampus.projectboard.service;
 
-
 import com.fastcampus.projectboard.domain.Article;
 import com.fastcampus.projectboard.domain.UserAccount;
 import com.fastcampus.projectboard.domain.constant.SearchType;
