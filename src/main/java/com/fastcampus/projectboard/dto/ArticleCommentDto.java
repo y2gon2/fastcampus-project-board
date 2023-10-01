@@ -4,7 +4,6 @@ import com.fastcampus.projectboard.domain.Article;
 import com.fastcampus.projectboard.domain.ArticleComment;
 import com.fastcampus.projectboard.domain.UserAccount;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
