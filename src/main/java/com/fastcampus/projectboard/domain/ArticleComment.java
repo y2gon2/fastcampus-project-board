@@ -58,11 +58,11 @@ public class ArticleComment extends AuditingFields {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ArticleComment that = (ArticleComment) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(this.getId(), that.getId());  // 직접 field 조회에서 getter 사용으로 변경. proxy 객체 직접 접근시 발생하는 문제 해결 ?
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(getId());  // 직접 field 조회에서 getter 사용으로 변경. proxy 객체 직접 접근시 발생하는 문제 해결 ?
     }
 }
