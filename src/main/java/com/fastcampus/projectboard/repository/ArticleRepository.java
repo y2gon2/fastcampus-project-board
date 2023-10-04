@@ -25,7 +25,6 @@ public interface ArticleRepository extends
     Page<Article> findByContentContaining(String content, Pageable pageable);
     Page<Article> findByUserAccount_UserIdContaining(String userId, Pageable pageable);
     Page<Article> findByUserAccount_NicknameContaining(String nickname, Pageable pageable);
-    Page<Article> findByHashtag(String hashtag, Pageable pageable);
 
     void deleteByIdAndUserAccount_UserId(Long articleId, String userid);
 
@@ -33,13 +32,13 @@ public interface ArticleRepository extends
     @Override
     default void customize(QuerydslBindings bindings, QArticle root) {
         bindings.excludeUnlistedProperties(true); // 기본 검색 모든 field 검색 기능을 가진 상태를 다시 제외 시키고 
-        bindings.including(root.title, root.hashtag, root.content, root.createdAt, root.createdBy); // 검색을 원하는 field 만 다시 추가 시킴
+        bindings.including(root.title, root.hashtags, root.content, root.createdAt, root.createdBy); // 검색을 원하는 field 만 다시 추가 시킴
 
         // 대소문자 구분없는 부분 글자 검색
 //        bindings.bind(root.title).first(StringExpression::likeIgnoreCase);  // Query 생성이  like '${value}' -> 사용자가 % wild card 를 넣어 줘야 함.
         bindings.bind(root.title).first(StringExpression::containsIgnoreCase);  //            like '%${value}%'
         bindings.bind(root.content).first(StringExpression::containsIgnoreCase);
-        bindings.bind(root.hashtag).first(StringExpression::containsIgnoreCase);
+        bindings.bind(root.hashtags.any().hashtagName).first(StringExpression::containsIgnoreCase);
         bindings.bind(root.createdAt).first(DateTimeExpression::eq);
         bindings.bind(root.createdBy).first(StringExpression::containsIgnoreCase);
     }

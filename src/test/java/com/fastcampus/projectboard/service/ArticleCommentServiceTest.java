@@ -2,6 +2,7 @@ package com.fastcampus.projectboard.service;
 
 import com.fastcampus.projectboard.domain.Article;
 import com.fastcampus.projectboard.domain.ArticleComment;
+import com.fastcampus.projectboard.domain.Hashtag;
 import com.fastcampus.projectboard.domain.UserAccount;
 import com.fastcampus.projectboard.dto.ArticleCommentDto;
 import com.fastcampus.projectboard.dto.UserAccountDto;
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -176,23 +178,6 @@ class ArticleCommentServiceTest {
         );
     }
 
-    private ArticleComment createArticleComment(String content) {
-        return ArticleComment.of(
-                Article.of(createUserAccount(), "title", "content", "hashtag"),
-                createUserAccount(),
-                content
-        );
-    }
-
-    private Article createArticle() {
-        return Article.of(
-                createUserAccount(),
-                "title",
-                "content",
-                "#java"
-        );
-    }
-
     private UserAccount createUserAccount() {
         return UserAccount.of(
                 "uno",
@@ -203,5 +188,26 @@ class ArticleCommentServiceTest {
         );
     }
 
+    private ArticleComment createArticleComment(String content) {
+        return ArticleComment.of(
+                createArticle(),
+                createUserAccount(),
+                content
+        );
+    }
+
+    private Article createArticle() {
+        Article article = Article.of(
+                createUserAccount(), "title", "content"
+        );
+
+        article.addHashtags(Set.of(createHashtag(article)));
+
+        return article;
+    }
+
+    private Hashtag createHashtag(Article article) {
+        return Hashtag.of("java");
+    }
 }
 

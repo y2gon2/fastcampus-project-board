@@ -5,6 +5,7 @@ import com.fastcampus.projectboard.domain.constant.FormStatus;
 import com.fastcampus.projectboard.domain.constant.SearchType;
 import com.fastcampus.projectboard.dto.ArticleDto;
 import com.fastcampus.projectboard.dto.ArticleWithCommentsDto;
+import com.fastcampus.projectboard.dto.HashtagDto;
 import com.fastcampus.projectboard.dto.UserAccountDto;
 import com.fastcampus.projectboard.dto.request.ArticleRequest;
 import com.fastcampus.projectboard.dto.response.ArticleResponse;
@@ -72,9 +73,9 @@ class ArticleControllerTest {
     @Test
     public void givenNothing_whenRequestingArticlesView_thenReturnsArticlesView() throws Exception{
         //Given
-        // argument matcher 인데 field 중 일부만 matcher 를 할 수 없다
-        // 그래서 이때 두번째 argument 가 '아무거나'가 아닌 'null' 이여야 한다.
-        // 해당 조건에서 eq() method 를 사용하면 된다. ... 무슨소리인지 모르겠다...;;;
+        // parameter 중 일부를 any() 또는 eq() 를 사용하였다면, 나머지 parameter 들도 eq() 조건인지, any() 조건인지 명시해주어야 한다.
+        // 해당 searchArticles() 의 parameter 에서 내용에 상관없이 Pageable.class 를 입력할 것이므로, any() method 를 사용
+        // 따라서 다른 parameter에 대해서도 any() 또는 eq() 를 사용하여 입력 조건을 명확히 해주어야 한다.
         given(articleService.searchArticles(eq(null), eq(null), any(Pageable.class))).willReturn(Page.empty());
         given(paginationService.getPaginationBarNumbers(anyInt(), anyInt())).willReturn(List.of(0, 1, 2, 3, 4));
 
@@ -84,7 +85,10 @@ class ArticleControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(view().name("articles/index"))
                 .andExpect(model().attributeExists("articles"))
-                .andExpect(model().attributeExists("paginationBarNumbers")); // 서버에서 게시글 목록을 받았을 view 로 articles attribute 이 전달되었는지 확인
+                .andExpect(model().attributeExists("paginationBarNumbers")) // 서버에서 게시글 목록을 받았을 view 로 articles attribute 이 전달되었는지 확인
+                .andExpect(model().attributeExists("searchTypes"))
+                .andExpect(model().attribute("searchTypeHashtag", SearchType.HASHTAG)); // TODO : Check!!
+
         then(articleService).should().searchArticles(eq(null), eq(null), any(Pageable.class));
         then(paginationService).should().getPaginationBarNumbers(anyInt(), anyInt());
     }
@@ -127,7 +131,7 @@ class ArticleControllerTest {
 
         // When & Then
         mvc.perform(MockMvcRequestBuilders.get("/articles")
-                        // 아래와 같은 GET 요청에 대한 queryParmeter 를 받으면,
+                        // pageable parameter 지정으로 생성(?) 되는 parameter 들에 대해 아래와 같이 접근 및 해당 값을 지정한다.
                         // (Spring 내부적으로 ??) 처리되어  pageable 객체로 바뀜
                         .queryParam("page", String.valueOf(pageNumber))
                         .queryParam("size", String.valueOf(pageSize))
@@ -137,6 +141,7 @@ class ArticleControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(view().name("articles/index"))
                 .andExpect(model().attribute("paginationBarNumbers", barNumbers));
+
         then(articleService).should().searchArticles(null, null, pageable);
 
         // 위에서 넣은 qurey parameter 로 pageable 변환되어 받아진 것이 이미 설정해 놓은 pageable 과 일치하는지릃 확인
@@ -179,7 +184,8 @@ class ArticleControllerTest {
                 .andExpect(view().name("articles/detail"))
                 .andExpect(model().attributeExists("article"))
                 .andExpect(model().attributeExists("articleComments"))
-                .andExpect(model().attribute("totalCount", totalCount));
+                .andExpect(model().attribute("totalCount", totalCount))
+                .andExpect(model().attribute("searchTypeHashtag", SearchType.HASHTAG)); // TODO : 추후 확인 및 관련 controller logic 추가
 
         then(articleService).should().getArticleWithComments(articleId);
         then(articleService).should().getArticleCount();
@@ -251,7 +257,7 @@ class ArticleControllerTest {
     @WithMockUser
     @DisplayName("[view][GET] 새 게시글 작성 페이지")
     @Test
-    void givenNothing_whenRequesting_thenReturnNewArticlePage() throws Exception {
+    void givenAuthorizedUser_whenRequesting_thenReturnNewArticlePage() throws Exception {
         // Given
 
         // When & Then
@@ -269,9 +275,7 @@ class ArticleControllerTest {
     @Test
     void givenNewArticleInfo_whenRequesting_thenSavesNewArticle() throws Exception {
         // Given
-        ArticleRequest articleRequest = ArticleRequest.of(
-                "new title", "new content", "#ne"
-        );
+        ArticleRequest articleRequest = ArticleRequest.of("new title", "new content");
         willDoNothing().given(articleService).saveArticle(any(ArticleDto.class));
 
         // When & Then
@@ -286,6 +290,20 @@ class ArticleControllerTest {
                 .andExpect(redirectedUrl("/articles"));
 
         then(articleService).should().saveArticle(any(ArticleDto.class));
+    }
+
+    @DisplayName("[view][GET] 게시르 수정 페이지 - 인증 없을 때는 로그인 페이지로 이동")
+    @Test
+    void givenNothing_whenRequesting_thenRedirecttsToLoginPage() throws Exception {
+        // Given
+       long articeId = 1L;
+
+        // When & Then
+        mvc.perform(get("/articles/" + articeId + "/form"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("***/login"));
+
+        then(articleService).shouldHaveNoInteractions();
     }
 
     @WithMockUser
@@ -313,9 +331,7 @@ class ArticleControllerTest {
     void givenNothing_whenRequesting_thenReturnsUpdatedNewArticle() throws Exception {
         // Given
         Long articleId = 1L;
-        ArticleRequest articleRequest = ArticleRequest.of(
-            "new title", "new content", "#new"
-        );
+        ArticleRequest articleRequest = ArticleRequest.of("new title", "new content");
         willDoNothing().given(articleService).updateArticle(eq(articleId), any(ArticleDto.class));
 
         // When & Then
@@ -341,9 +357,7 @@ class ArticleControllerTest {
         // Given
         long articleId = 1L;
         String userId = "unoTest";
-        ArticleRequest articleRequest = ArticleRequest.of(
-                "new title", "new content", "#new"
-        );
+        ArticleRequest articleRequest = ArticleRequest.of("new title", "new content");
         willDoNothing().given(articleService).deleteArticle(articleId, userId); // 작성자 외 삭제를 불가능하게 하기 위해 계정 정보도 넣어줌
 
         // When & Then
@@ -369,7 +383,7 @@ class ArticleControllerTest {
           createUserAccountDto(),
           "title",
           "content",
-          "#java"
+                Set.of(HashtagDto.of("java"))
         );
     }
 
@@ -380,7 +394,7 @@ class ArticleControllerTest {
                 Set.of(),
                 "title",
                 "content",
-                "#java",
+                Set.of(HashtagDto.of("java")),
                 LocalDateTime.now(),
                 "gon",
                 LocalDateTime.now(),
