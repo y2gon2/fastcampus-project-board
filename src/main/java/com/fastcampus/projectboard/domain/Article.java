@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.Setter;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -17,7 +18,6 @@ import javax.persistence.*;
 @ToString(callSuper = true)
 @Table(indexes = { // 검색 가능한 column 들?
         @Index(columnList = "title"),
-        @Index(columnList = "hashtag"),
         @Index(columnList = "createdAt"),
         @Index(columnList = "createdBy"),
 })
@@ -39,7 +39,27 @@ public class Article extends AuditingFields {
     @Setter @Column(nullable = false) private String title;   // notNull
     @Setter @Column(nullable = false, length = 10000) private String content; // notNull
 
-    @Setter private String hashtag; // nullable
+
+    // @JoinTable
+    // 해당 annotation 을 사용하여 many to many mapping entity class 를 작성하지 않고 설정할 수 있다.
+    // 이것은 두 entity 중 관리 주체 class 에 명시하며, 수동 주체에서 관련 내용을 작성할 필요가 없다.
+    // 해당 mapping table name 은 article_hashtag 이다.
+    // 능동 table 에서 mapping column 은 "articleId" (article table 의 id column) 이다.
+    // 피동 table 에서 mapping column 은 "hashtagId" (hashtag table 의 id column) 이다.
+    //
+    // cascade
+    // 양방향 참조이지만, article 에서 hashtag entity 에는 변화를 줄 수 있지만, 그 역은 필요없으므로 여기에서만 cascade 조건 부여
+    // Article repository 가 동작했을 때, article table 뿐만 아니라 hashtag table 에도 query 가 날라가는 효과 적용
+    // 다만 CascadeType.REMOVE 는 제외 (다대다 관계이기 때문에 Aritcle 에서 Hashtag 값을 그냥 지워버리면 다른 걸려있는 값들에 영향을 줄 수 있음.)
+    // CascadeType.PERSIST : insert    CascadeType.MERGE : update
+    @ToString.Exclude
+    @JoinTable(
+            name = "article_hashtag",
+            joinColumns = @JoinColumn(name = "articleId"),
+            inverseJoinColumns = @JoinColumn(name = "hashtagId")
+    )
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private Set<Hashtag> hashtags = new LinkedHashSet<>();
 
     // 양방향 data (one to many)
     // 이 article 에 연동되어 있는 모든 comment 들을 중복되지 않게 모아서 collection 으로 보겠다?
@@ -65,15 +85,26 @@ public class Article extends AuditingFields {
     protected Article() {}
 
     // id & metadata 제외 data 만 넣는 생성자 -> factory method 에서만 접근 가능하도록
-    private Article(UserAccount userAccount, String title, String content, String hashtag) {
+    private Article(UserAccount userAccount, String title, String content) {
         this.userAccount = userAccount;
         this.title = title;
         this.content = content;
-        this.hashtag = hashtag;
     }
 
-    public static Article of(UserAccount userAccount, String title, String content, String hashtag) {
-        return new Article(userAccount, title, content, hashtag);
+    public static Article of(UserAccount userAccount, String title, String content) {
+        return new Article(userAccount, title, content);
+    }
+
+    public void addHashtag(Hashtag hashtag) {
+        this.getHashtags().add(hashtag);
+    }
+
+    public void addHashtags(Collection<Hashtag> hashtags) {
+        this.getHashtags().addAll(hashtags);
+    }
+
+    public void clearHashtags() {
+        this.getHashtags().clear();
     }
 
     @Override
