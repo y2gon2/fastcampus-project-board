@@ -238,7 +238,7 @@ class ArticleServiceTest {
         expectedHashtags.add(createHashtag("java"));
 
         given(userAccountRepository.getReferenceById(dto.userAccountDto().userId())).willReturn(createUserAccount());
-        given(hashtagService.parseHashtagNames(dto.content())).willReturn(expectedHashtags);
+        given(hashtagService.parseHashtagNames(dto.content())).willReturn(expectedHashtagNames);
         given(hashtagService.findHashtagsByNames(expectedHashtagNames)).willReturn(expectedHashtags);
         given(articleRepository.save(any(Article.class))).willReturn(createArticle());
 
@@ -254,7 +254,7 @@ class ArticleServiceTest {
 
     @DisplayName("게시글의 수정 정보를 입력하면, 게시글을 수정한다.")
     @Test
-    void gevenModifiedArticleInfo_whenUpdatingArticle_thenUpdatedsArticle() {
+    void givenModifiedArticleInfo_whenUpdatingArticle_thenUpdatedsArticle() {
         // Given
         Article article = createArticle();
         ArticleDto dto = createArticleDto("새 타이틀", "새 내용 #springboot");

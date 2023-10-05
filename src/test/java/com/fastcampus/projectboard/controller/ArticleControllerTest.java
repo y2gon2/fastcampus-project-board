@@ -292,7 +292,7 @@ class ArticleControllerTest {
         then(articleService).should().saveArticle(any(ArticleDto.class));
     }
 
-    @DisplayName("[view][GET] 게시르 수정 페이지 - 인증 없을 때는 로그인 페이지로 이동")
+    @DisplayName("[view][GET] 게시글 수정 페이지 - 인증 없을 때는 로그인 페이지로 이동")
     @Test
     void givenNothing_whenRequesting_thenRedirecttsToLoginPage() throws Exception {
         // Given
@@ -301,7 +301,7 @@ class ArticleControllerTest {
         // When & Then
         mvc.perform(get("/articles/" + articeId + "/form"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("***/login"));
+                .andExpect(redirectedUrlPattern("**/login"));
 
         then(articleService).shouldHaveNoInteractions();
     }
