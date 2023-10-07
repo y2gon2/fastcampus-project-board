@@ -24,19 +24,24 @@ public class AuditingFields {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    protected LocalDateTime createdAt;
+    // protected -> 해당 class 는 대부분의 entity 들이 superclass 로 가지게 된다.
+    // 이때 subclass 에서 해당 class field 에 접근하기 위해서는 접근 제어자가 protected 이여야 한다.
+    // OAuth 구현 전까지는 기본적으로 이미 DB 에 저장된 UserAccount 정보만을 이용했으므로,
+    // 인증 작업을 위해 runtime 중 해당 class field 에 직접 접근하는 일이 없었으나,
+    // 이제 관련 상황이 발생할 것으로 예상되어짐.
 
     @CreatedBy
     @Column(nullable = false, updatable = false, length = 100)
-    private String createdBy;
+    protected String createdBy;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @LastModifiedDate
     @Column(nullable = false)
-    private LocalDateTime modifiedAt;
+    protected LocalDateTime modifiedAt;
 
     @LastModifiedBy
     @Column(nullable = false, length = 100)
-    private String modifiedBy;
+    protected String modifiedBy;
 }
 
