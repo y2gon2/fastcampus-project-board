@@ -5,8 +5,10 @@ import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -16,10 +18,37 @@ public record BoardPrincipal(
         Collection<? extends GrantedAuthority> authorities,
         String email,
         String nickname,
-        String memo
-) implements UserDetails {
+        String memo,
+        Map<String, Object> oAuth2Attributes
+) implements UserDetails, OAuth2User {
 
-    public static BoardPrincipal of(String username, String password, String email, String nickname, String memo) {
+    // oAuth2Attributes parameter X
+    public static BoardPrincipal of(
+            String username,
+            String password,
+            String email,
+            String nickname,
+            String memo
+    ) {
+        return BoardPrincipal.of(
+                username,
+                password,
+                email,
+                nickname,
+                memo,
+                Map.of()
+        );
+    }
+
+    // oAuth2Attributes parameter O
+    public static BoardPrincipal of(
+            String username,
+            String password,
+            String email,
+            String nickname,
+            String memo,
+            Map<String, Object> oAuth2Attributes
+    ) {
         Set<RoleType> roleTypes = Set.of(RoleType.USER);
 
         return new BoardPrincipal(
@@ -31,7 +60,8 @@ public record BoardPrincipal(
                         .collect(Collectors.toUnmodifiableSet()),
                 email,
                 nickname,
-                memo
+                memo,
+                oAuth2Attributes
         );
     }
 
@@ -57,13 +87,11 @@ public record BoardPrincipal(
         );
     }
 
-    @Override
-    public String getPassword() {
+    // for Spring security
+    @Override public String getPassword() {
         return password;
     }
-
-    @Override
-    public String getUsername() {
+    @Override public String getUsername() {
         return username;
     }
 
@@ -77,6 +105,14 @@ public record BoardPrincipal(
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
     @Override public boolean isEnabled() { return true; }
+
+    // for OAuth
+
+    // provider 가 (내부 구조, key 명칭은 다르리 지라도)JSON key-value 로 인증 정보를 보내주면
+    // 해당 정보 전체를 해당 mapping 구조로 받기 위한 method
+    // 이렇게 받아서 field 값으로 저장, 작업을 진행한다.
+    @Override public Map<String, Object> getAttributes() { return null; }
+    @Override public String getName() { return username; }
 
     public enum RoleType {
         USER("ROLE_USER"); // ROLE : spring-security 에서 문자열로 권한 표현을 하는 규칙

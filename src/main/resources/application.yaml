@@ -78,7 +78,34 @@ spring:
 
   thymeleaf3:
     decoupled-logic: true # by ThymeleafConfig class
+  security:
+    oauth2:
+      client:
+        registration: # oauth provider infomation
+          kakao:
+            client-id: ${KAKAO_OAUTH_CLIENT_ID}
+            client-secret: ${KAKAO_OAUTH_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
 
+            # redirect-uri: http://localhost:8080/login/oauth2/code/kakao
+            # provider 를 통해서 인증이 되면 내 app 으로 돌아올 uri
+            # 그러나 나의 uri 를 그대로 노출 시키고 싶지 않다면
+            # https://docs.spring.io/spring-security/reference/servlet/oauth2/login/core.html
+            # {baseUrl}/login/oauth2/code/{registrationId}
+            # baseUrl 을 spring boot 가 알아서 치환
+            # {} 이 yaml 파일에서 특수 기호로 인식되기 때문에 해당 요소 때문에 다르게 인식되는 것을 막기 위해 "" 로 묶음
+            redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
+
+            # 인증 서버에 요청을 넣어줄 때, 그 API 를 호출 할 HTTP method 까지 지정 (OAuth provider 의 공식문서에서 요구하는 대로 지정해줘야)
+            # https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api
+            client-authentication-method: POST
+        provider:
+          kakao:
+            # https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api
+            authorization-uri: https://kauth.kakao.com/oauth/authorize    # 인증 (권한 받을 때)
+            token-uri: https://kauth.kakao.com/oauth/token           # 토큰 갱신
+            user-info-uri: https://kapi.kakao.com/v2/user/me        # 설정된 사용자 정보를 받아오는 (만약 자체 DB 에 저장하지 않는다면 필요할 때마다 가져와야함.)
+            user-name-attribute: id     # 받아온 인증 정보에는 다양한 property 들이 있을 텐데 그중 'id' 식별자 정보로 사용하겠다. (kakao 의 경우 응답 message 중 회원번호 id)
 #---
 #
 #spring:
