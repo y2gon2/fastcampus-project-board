@@ -9,9 +9,9 @@ logging:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/board
-    username: gon
-    password: 2025
+    url: ${LOCAL_DB_URL}
+    username: ${LOCAL_DB_USERNAME}
+    password: ${LOCAL_DB_PASSWORD}
 
 #    url: jdbc:h2:mem:testdb
 #    username: sa
@@ -83,8 +83,8 @@ spring:
       client:
         registration: # oauth provider infomation
           kakao:
-            client-id: ${KAKAO_OAUTH_CLIENT_ID}
-            client-secret: ${KAKAO_OAUTH_CLIENT_SECRET}
+#            client-id: ${KAKAO_OAUTH_CLIENT_ID}         # spirng boot 외부 환경 변수 주입으로 해당 값 입력을 처리하면,
+#            client-secret: ${KAKAO_OAUTH_CLIENT_SECRET} # app 실행 시, spring boot 이  해당 setting 값을 넣고 실행하기 때문에 해당 설정을 삭제해도 동일하게 실행됨.
             authorization-grant-type: authorization_code
 
             # redirect-uri: http://localhost:8080/login/oauth2/code/kakao
