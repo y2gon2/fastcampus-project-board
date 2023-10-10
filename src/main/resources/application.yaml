@@ -8,6 +8,16 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: trace
 
 spring:
+  # 아래 vault 설정을 사용한 key value pair 로 아래 datasouce 의 url, username, password 를 환경변수로 저장하지않고,
+  # 보안기능이 강화된 vault cloud 기능을 사용하여 작업을 진행 할 수 있다.
+  # 그러나 현재 Heroku 에서 vault 를 사용하지 않기 때문에 해당 설정은 주석 처리하여 비활성화 함
+#  application.name: fastcampus-board # vault 사용하여 생성한 secret/fastcampus-board key-value pair 저장소 이름
+#  cloud.vault:
+#      scheme: http
+#      authentication: TOKEN
+#      token: ${VAULT_TOKEN}   # Root Token: hvs.8fCdxxxEXSoFzL7ij19xxxxx  과 같이 vault server 생성 token 사용
+#  config.import: vault://     # https://docs.spring.io/spring-cloud-vault/docs/current/reference/html/
+
   datasource:
     url: ${LOCAL_DB_URL}
     username: ${LOCAL_DB_USERNAME}
