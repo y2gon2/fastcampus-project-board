@@ -9,6 +9,7 @@ import java.util.TreeSet;
 
 /**
  * DTO for {@link com.fastcampus.projectboard.domain.ArticleComment}
+ * Swagger UI 에서 확인 필요
  */
 public record ArticleCommentResponse(
         Long id,
