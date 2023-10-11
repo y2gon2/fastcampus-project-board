@@ -142,3 +142,12 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa.hibernate.ddl-auto: create
   sql.init.mode: always
+
+---
+
+  # @SpringBootTest 진행 시, 해당 파일 설정 중 민감정보 외부 환경 변수로 처리한 부분에서 에러가 발생하기 때문에
+  # test 진행시 관련되 부분만 다르게 설정하여 실행할 수 있도록 test 설정을 추가함.
+spring:
+  config.activate.on-profile: test
+  datasource.url: jdbc:h2:mem:testdb
+
