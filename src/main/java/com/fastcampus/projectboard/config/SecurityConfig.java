@@ -35,6 +35,7 @@ public class SecurityConfig {
         return http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // static resource 에 대해서 "인증" 을 검사 없이 모두 허가
+                        .mvcMatchers("/api/**").permitAll() // RESTful Api 를 통한 접속은 인증을 끔
                         .mvcMatchers(
                                 HttpMethod.GET,
                                 "/",
@@ -49,6 +50,9 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oAuth2UserService)
                         )
+                )
+                .csrf( // CSRF 공격은 주로 browser session 정보를 이용하여 통신을 하는 경우 발생하므로, API 통신상태에서는 해당 security 를 끄도록 설정
+                        csrf -> csrf.ignoringAntMatchers("/api/**")
                 )
                 .build();
     }
